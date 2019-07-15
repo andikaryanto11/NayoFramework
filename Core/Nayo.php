@@ -97,6 +97,13 @@ class Nayo{
 
         define("CURR_VIEW_PATH", VIEW_PATH);
 
+        define("APP_CACHE", APP_PATH . "Cache");
+
+        define("CORE_BLADE", CORE_PATH . "Blade" . DS);
+
+        define("BLADE_CACHE", CORE_BLADE . "Cache");
+
+
         // load config
         
         include CONFIG_PATH . "Config.php";

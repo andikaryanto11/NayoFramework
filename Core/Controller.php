@@ -2,10 +2,12 @@
 namespace Core;
 use Core\Request;
 use Core\CSRF;
+Use eftec\bladeone\BladeOne;
 
 class Nayo_Controller{
     protected $request = false;
     protected $session = false;
+    protected $blade = false;
     // protected $security = false;
     public $tokenname = "";
     public $tokenhash = "";
@@ -45,6 +47,20 @@ class Nayo_Controller{
         extract($datas) ;
         include(APP_PATH."Views/".$url.".php");
 
+    }
+
+    public function blade($path, $datas = array()){
+
+        $this->blade = new BladeOne(APP_PATH."Views/", APP_CACHE, BladeOne::MODE_AUTO);
+        $this->bladeInclude();
+        echo $this->blade->run($path, $datas);
+
+    }
+
+    private function bladeInclude(){
+        
+        $this->blade->addInclude("includes.input", 'input');
+        $this->blade->addInclude("includes.label", 'label');
     }
 
     public function input(string $var){

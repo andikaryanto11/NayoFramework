@@ -6,8 +6,9 @@ use Core\Database\Connection;
 use \PDO;
 
 class PDOMySQL implements IDbDriver{
+
+    protected static $instance = null;
     
-   
     protected $conn = false;  //DB connection resources
 
     protected $sql;  
@@ -23,7 +24,7 @@ class PDOMySQL implements IDbDriver{
     /**
      * Class constructor.
      */
-    public function __construct()
+    private function __construct()
     {
         Connection::init();
 
@@ -35,6 +36,10 @@ class PDOMySQL implements IDbDriver{
                 die();
             }
         }
+    }
+
+    public static function getInstance(){
+
     }
 
     public function getConnection(){

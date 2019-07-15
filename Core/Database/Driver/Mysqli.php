@@ -7,6 +7,8 @@ use Core\Interfaces\IDbDriver;
 
 class Mysqli implements IDbDriver{
 
+    protected static $instance = null;
+
     protected $conn = false;  //DB connection resources
 
     protected $sql; 
@@ -21,7 +23,7 @@ class Mysqli implements IDbDriver{
     /**
      * Class constructor.
      */
-    public function __construct()
+    private function __construct()
     {
 
         Connection::init();
@@ -32,6 +34,12 @@ class Mysqli implements IDbDriver{
         } 
     }
 
+    public static function getInstance(){
+        if(self::$instance == null)
+            self::$instance = new self;
+        
+        return  self::$instance;
+    }
 
     public function getConnection(){
         return $this->conn;
