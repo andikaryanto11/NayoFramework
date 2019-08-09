@@ -84,13 +84,13 @@ Here example :
  if model class extends Nayo_Model class, class wil have CRUD method
 
  * modelclass->query($sql);
- * modelclass->find($id) 
+ * modelclass::get($id) 
 
   example :
   
-      $model = new Example();
-      $model->find(1);
+      Example::get(1);
       //this method wiil return result table with id = 1
+      // Example is the object class that is mapped to table;
       
  * modelclass->save()
 
@@ -104,8 +104,7 @@ Here example :
       $model->save();
       
       //update data
-      $model = new Example();
-      $model->find(1);
+      $model = Example::get(1);
       $model->Name = 'edited Name';
       $model->save();
       
@@ -113,17 +112,15 @@ Here example :
   
   example: 
   
-      $model = new Example();
-      $model->find(1);
+      $model = Example::get(1);
       $model->delete();
       
       //this method will delete data with Id = 1
       
-  * modelclass->findAll($array)
+  * modelclass::getAll($array)
     $array is optional
     example: 
         
-        $model = new Example();
         $params = array(
             'where' => array(
                 'Name' => 'existname'
@@ -131,10 +128,10 @@ Here example :
         );
         
         //filtered
-        $result = $model->findAll($params);
+        $result = Example::getAll($params);
         
         //or get all data
-        $result = $model->findAll();
+        $result = Example::getAll();
         
   * modelclass->get_Entity()
    Entity is ojbect table related name with upper case first letter
@@ -143,9 +140,8 @@ Here example :
    
    example: 
           
-         $model = new Tests();
-
-         foreach($model->findAll() as $test){
+         //Tests is a model class object
+         foreach(Tests::getAll() as $test){
              echo $test->get_Example()->Name; // get_EntityName() get related table data
          }
          
@@ -155,8 +151,7 @@ Here example :
    
    example: 
           
-         $model = new Example();
-         $data = $model->find(1);
+         $data = Example::get(1);
          foreach($data->get_list_Test() as $test){
              
          }
@@ -193,9 +188,8 @@ Here example :
        * you can read all function in Core\Model
        */
        public function test(){
-           $model = new Tests();
 
-           foreach($model->findAll() as $test){
+           foreach(Tests::findAll() as $test){
                echo $test->get_Example()->Name; // get_EntityName() get related table data
            }
        }
@@ -251,7 +245,7 @@ server side proses datatables will return json format to
                 ]
             ];
             
-            $datatable = new Datatables('M_foodcategories', $params); // $params are optional
+            $datatable = new Datatables('M_Examples', $params); // $params are optional
             $datatable
             ->addColumn(
                 'Id', 
