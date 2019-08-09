@@ -220,9 +220,36 @@ see Nezamy route for more info at https://nezamy.com/Route/
     php index.php model table_name
   
   # Migration
-  will generate migration file in App\Database\Migrations that has file name as current time, ex : yyyymmddhhiiss.sql
+  will generate migration file in App\Database\Migrations that has file name as current time, ex : Migration_yyyymmddhhiiss.php
   
     php index.php migration
+    
+    <?php
+    namespace App\Database\Migrations;
+    use Core\Database\Table;
+
+    class migration_20190620045801 {
+
+        public function up(){
+            
+            //creating table
+            $table = new Table();
+            $table->table('m_companies');
+            $table->addColumn("Id", "int", "11", false, null, true, true);
+            $table->addColumn("CompanyName", "Varchar", "50");
+            $table->addColumn("Address", "Varchar", "300");
+            $table->addColumn("PostCode", "Varchar", "10");
+            $table->addColumn("Email", "Varchar", "300");
+            $table->addColumn("Phone", "Varchar", "50");
+            $table->addColumn("Fax", "Varchar", "50", true);
+            $table->addColumn("UrlPhoto", "Varchar", "500", true);
+            $table->addColumn("CreatedBy", "Varchar", "50", true);
+            $table->addColumn("ModifiedBy", "Varchar", "50", true);
+            $table->addColumn("Created", "datetime", "", true);
+            $table->addColumn("Modified", "datetime", "", true);
+            $table->create();
+        }
+    }
     
   # Migrate
   will migrate all migrations that haven't been in your database migration
