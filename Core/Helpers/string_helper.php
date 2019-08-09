@@ -1,19 +1,35 @@
 <?php
 
-function escapeString(string $string){
+function escapeString(string $string)
+{
     return str_replace("'", "''", $string);
 }
 
-function columnValidate(string $string, $openmark, $closeMark){
-    $phrase = str_replace(" ", "", $string);
+function columnValidate(string $string, $openmark, $closeMark, $isUseSymbol = true)
+{
+    $equal = "=";
+    $phrase = str_replace([" "], [""], $string);
 
-    $cond = ["!", "<>", "<", ">"];
+    $cond = ["!", "<>", "<", ">", "<=", ">="];
 
-    foreach($cond as $needle){
-        if(strpos($phrase, $needle)){
-            return str_replace($needle,$closeMark.$needle, $phrase);
-        }
+    if ($isUseSymbol){
+        foreach ($cond as $needle) {
+
+            if (strrpos($phrase, $needle) > 0) {
+                if (preg_match("/(<|>|<=|>=)$/", $phrase) > 0) {
+                    return str_replace($needle, $closeMark . $needle, $phrase);
+                } else {
+                    return str_replace($needle, $closeMark . $needle.$equal, $phrase);
+                }
+            } else {
+                if (preg_match("/(<|>|<=|>=)$/", $phrase) > 0) {
+
+                } else {
+                    return $phrase.$closeMark.$equal;
+                }
+            } 
+        } 
     }
 
-    return $phrase.$closeMark;
+    return $phrase . $closeMark;
 }

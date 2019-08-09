@@ -31,7 +31,7 @@ class Datatables {
 
     private function newEntity(){
         $ent = 'App\\Models\\'.$this->entity;
-        return new $ent;
+        return $ent;
     }
 
     public function populate(){
@@ -61,13 +61,15 @@ class Datatables {
 
         if($this->request->get('order') && count($this->request->get('order'))){
             $order = $this->request->get('order')[0];
-            $params['order'] = array(
-                $this->column[$order['column']]['column'] =>  $order['dir'] === 'asc' ? "ASC" : "DESC"
-            );
+            
+            if(isset($this->column[$order['column']]) && $this->column[$order['column']]['orderable'])
+                $params['order'] = array(
+                    $this->column[$order['column']]['column'] =>  $order['dir'] === 'asc' ? "ASC" : "DESC"
+                );
         }
         // echo json_encode($params, JSON_PRETTY_PRINT);    
 
-        $result = $model->findAll($params);
+        $result = $model::getAll($params);
         $this->output($result);
 
         return array(
@@ -88,7 +90,7 @@ class Datatables {
             'group' => isset($filter['group']) ? $filter['group'] : null,
             'order' => isset($filter['order']) ? $filter['order'] : null,
         );
-        return $model->count($params);
+        return $model::countAll($params);
     }
 
     private function output($datas){

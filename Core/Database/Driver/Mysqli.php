@@ -7,8 +7,6 @@ use Core\Interfaces\IDbDriver;
 
 class Mysqli implements IDbDriver{
 
-    protected static $instance = null;
-
     protected $conn = false;  //DB connection resources
 
     protected $sql; 
@@ -23,7 +21,7 @@ class Mysqli implements IDbDriver{
     /**
      * Class constructor.
      */
-    private function __construct()
+    public function __construct()
     {
 
         Connection::init();
@@ -34,12 +32,6 @@ class Mysqli implements IDbDriver{
         } 
     }
 
-    public static function getInstance(){
-        if(self::$instance == null)
-            self::$instance = new self;
-        
-        return  self::$instance;
-    }
 
     public function getConnection(){
         return $this->conn;
@@ -108,6 +100,44 @@ class Mysqli implements IDbDriver{
         return $this;
 
     } 
+
+    public function multiQuery($sql, $loging = true)
+    {
+        if($loging){
+            $str = $sql . "  [". date("Y-m-d H:i:s") ."]" . PHP_EOL;
+    
+            file_put_contents("log.txt", $str, FILE_APPEND);
+        }
+
+        // $this->statement = mysqli_multi_query($this->conn, $this->sql);
+        
+        // if (! $this->statement) {
+
+        //     // die($this->errno().':'.$this->error().'<br />Error SQL statement is '.$this->sql.'<br />');
+        //     $arr = [
+        //         'errCode' => $this->errno(),
+        //         'errMessage' => $this->error(),
+        //         'errQuery' => $this->sql
+        //     ];
+            
+        //     return $arr; //$this->errno().':'.$this->error().'\nError SQL statement is '.$this->sql.'\n';
+
+        // }
+
+        if (mysqli_multi_query($this->conn, $this->sql)){
+            do{
+               if ($result=mysqli_store_result($this->conn)){
+                  while ($row=mysqli_fetch_row($result)){
+                     echo $row[0];
+                  }
+                  mysqli_free_result($this->conn);
+               }
+            }while (mysqli_next_result($this->conn));
+         } else {
+             echo "shit";
+         }
+        return $this;
+    }
     
     public function fetch(){
         $list = array();
@@ -136,7 +166,7 @@ class Mysqli implements IDbDriver{
 
     public function getAll($sql){
         $this->query($sql);
-        
+        // echo $sql;
         $list = array();
         if($this->statement){
             while ($row = mysqli_fetch_assoc($this->statement)){
@@ -153,7 +183,7 @@ class Mysqli implements IDbDriver{
     public function getOne($sql){
         $this->query($sql);
         
-        $single;
+        $single = false;
         if($this->statement){
             $single = mysqli_fetch_assoc($this->statement);
         }

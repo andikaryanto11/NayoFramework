@@ -39,7 +39,7 @@ class Connection {
      */
 
     public static function init(){
-        require 'App\Config\Database.php';
+        require APP_PATH . "Config/Database.php";
 
         
         $connectionString = isset($db['default']['dbname'])? $db['default']['connectionstring'] : '';

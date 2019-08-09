@@ -33,7 +33,9 @@ class Request {
     }
 
     public function files($name){
-        return $_FILES[$name];
+        if(isset($_FILES[$name]))
+            return $_FILES[$name];
+        return null;
     }
 
     public function type(){

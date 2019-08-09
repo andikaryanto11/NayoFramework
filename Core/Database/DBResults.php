@@ -35,7 +35,7 @@ class DBResults {
             $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
             $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
             // echo $ent;
-            $this->db = $ent::getInstance();
+            $this->db = new $ent;
             // echo Connection::drivers()[Connection::getDriverClass()];
         }
             
@@ -113,7 +113,7 @@ class DBResults {
 
             foreach($object as $key => $value){
                 if(isset($value)){
-                    $field_list[] = "{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark);
+                    $field_list[] = "{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark, false);
                     $value_list[] = "'".escapeString($value)."'";
                 }
                     
@@ -144,10 +144,12 @@ class DBResults {
     public function update($object){
         $list = array();
         foreach($object as $key => $value){
-            if(isset($value) && $key != "Id"){
-                
-                $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark)." = '".escapeString($value)."'";
-            }
+            if($key != "Id")
+                if(isset($value)){
+                        $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " '".escapeString($value)."'";
+                } else {
+                    $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " NULL";
+                }
                 
         }
         // $pk = $this->pk();

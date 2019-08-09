@@ -2,7 +2,7 @@
 namespace Core;
 use Core\Request;
 use Core\CSRF;
-Use eftec\bladeone\BladeOne;
+use eftec\bladeone\BladeOne;
 
 class Nayo_Controller{
     protected $request = false;

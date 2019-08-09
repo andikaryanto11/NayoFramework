@@ -11,7 +11,7 @@ $corenamespaces = [
         'CSRF',
         'Session'     
     ],
-    'Core\Database' => [
+    'Core/Database' => [
         'Connection',
         'DBBuilder',
         'DBResults',
@@ -19,28 +19,28 @@ $corenamespaces = [
         'Seed',
         'Table'
     ],
-    'Core\Interfaces' => [
+    'Core/Interfaces' => [
         'IClsList',
         'IDbDriver'
     ],
-    'Core\Database\Driver' => [
+    'Core/Database/Driver' => [
         'Mssql',
         'Mysqli',
         'Sqlsrv'
     ],
-    'Core\Database\PDO' => [
+    'Core/Database/PDO' => [
         'PDOMsSQL',
         'PDOMySQL'
     ],
-    'Core\Libraries' => [
-        'ClsList',
+    'Core/Libraries' => [
+        'Clslist',
         'Datatables',
         'Dictionary',
         'File',
         'Ftp',
         'Helper'
     ],
-    'Core\Rest' => [
+    'Core/Rest' => [
         'Response'
     ]
 

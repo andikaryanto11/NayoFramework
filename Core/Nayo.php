@@ -131,7 +131,8 @@ class Nayo{
         foreach($corenamespaces as $key => $corenamespace){
             foreach($corenamespace as $filename){
                 
-                require ROOT . $key ."\\".$filename. ".php";
+                require  ROOT . $key ."/".$filename. ".php";
+                
             }
         }
         $loader = new Loader();
@@ -160,7 +161,7 @@ class Nayo{
     private static function dispatch() {
         // print_r($_GET);
 
-        require "App\Config\Routes.php";
+        require(APP_PATH."Config/Routes.php");
  
     }
 

@@ -2,10 +2,10 @@
 namespace Core\Interfaces;
 
 interface IDbDriver {
-
-    public static function getInstance();
+    
     public function getConnection();
     public function query($sql);
+    public function multiQuery($sql);
     public function fetch();
     public function fetchObject();
     public function getAll($sql);

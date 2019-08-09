@@ -123,7 +123,7 @@ class Table {
                 $foreign = (object)$foreignkey;
                 
                 array_push($columns, "KEY `{$this->table}_{$foreign->Column}_fk` (`{$foreign->Column}`)\n");
-                array_push($columns, "CONSTRAINT `{$this->table}_{$foreign->Column}_fk` FOREIGN KEY (`{$foreign->Column}`) REFERENCES `{$foreign->TableRef}` (`{$foreign->KeyRef}`) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnUpdate}\n");
+                array_push($columns, "CONSTRAINT `{$this->table}_{$foreign->Column}_fk` FOREIGN KEY (`{$foreign->Column}`) REFERENCES `{$foreign->TableRef}` (`{$foreign->KeyRef}`) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnDelete}\n");
             }
 
             $strColumn = implode(",", $columns);
@@ -184,7 +184,7 @@ class Table {
             foreach($this->foreignKey as $key => $foreignkey) {
                 $foreign = (object)$foreignkey;
                 
-                array_push($columns, "CONSTRAINT {$this->table}_{$foreign->Column}_fk FOREIGN KEY ({$foreign->Column}) REFERENCES {$foreign->TableRef} ({$foreign->KeyRef}) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnUpdate}\n");
+                array_push($columns, "CONSTRAINT {$this->table}_{$foreign->Column}_fk FOREIGN KEY ({$foreign->Column}) REFERENCES {$foreign->TableRef} ({$foreign->KeyRef}) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnDelete}\n");
             }
             
             $strColumn = implode(",", $columns);
@@ -253,7 +253,7 @@ class Table {
             foreach($this->foreignKey as $key => $foreignkey) {
                 $foreign = (object)$foreignkey;
                 
-                array_push($columns, "ADD CONSTRAINT `{$this->table}_{$foreign->Column}_fk` FOREIGN KEY (`{$foreign->Column}`) REFERENCES `{$foreign->TableRef}` (`{$foreign->KeyRef}`) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnUpdate}\n");
+                array_push($columns, "ADD CONSTRAINT `{$this->table}_{$foreign->Column}_fk` FOREIGN KEY (`{$foreign->Column}`) REFERENCES `{$foreign->TableRef}` (`{$foreign->KeyRef}`) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnDelete}\n");
             }
 
             $strColumn = implode(",", $columns);
@@ -314,7 +314,7 @@ class Table {
             foreach($this->foreignKey as $key => $foreignkey) {
                 $foreign = (object)$foreignkey;
                 
-                array_push($columns, "ADD CONSTRAINT {$this->table}_{$foreign->Column}_fk FOREIGN KEY ({$foreign->Column}) REFERENCES {$foreign->TableRef} ({$foreign->KeyRef}) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnUpdate}\n");
+                array_push($columns, "ADD CONSTRAINT {$this->table}_{$foreign->Column}_fk FOREIGN KEY ({$foreign->Column}) REFERENCES {$foreign->TableRef} ({$foreign->KeyRef}) ON UPDATE {$foreign->OnUpdate} ON DELETE {$foreign->OnDelete}\n");
             }
 
             foreach($columns as $column){
@@ -357,6 +357,7 @@ class Table {
             // echo $seed;
             $this->db->query($seed);
             $this->db->close();
+            $this->seeds = array();
 
         } else if($this->connection->getDriverClass() == 'sqlsrv'){ 
 
@@ -372,7 +373,7 @@ class Table {
             // echo $seed;
             $this->db->query($seed);
             $this->db->close();
+            $this->seeds = array();
         }
-
     }
 }

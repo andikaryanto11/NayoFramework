@@ -23,7 +23,7 @@ class PDOMsSQL implements IDbDriver{
     /**
      * Class constructor.
      */
-    private function __construct()
+    public function __construct()
     {
         Connection::init();
 
@@ -36,13 +36,6 @@ class PDOMsSQL implements IDbDriver{
                 die();
             }
         }
-    }
-
-    public static function getInstance(){
-        if(self::$instance == null)
-            self::$instance = new self;
-    
-        return  self::$instance;
     }
 
     public function getConnection(){
@@ -101,6 +94,10 @@ class PDOMsSQL implements IDbDriver{
         $this->statement->execute();
         return $this;
         // return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function multiQuery($sql, $loging = true)
+    {
     }
 
     public function fetch(){

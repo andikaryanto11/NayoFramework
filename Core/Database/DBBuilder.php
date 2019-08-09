@@ -14,7 +14,7 @@ class DBBuilder {
             $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
             $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
             // echo $ent;
-            $this->db = $ent::getInstance();
+            $this->db = new $ent;
             // echo Connection::drivers()[Connection::getDriverClass()];
         }
     }
@@ -25,6 +25,12 @@ class DBBuilder {
      */
     public function query(string $sql){
         $this->db->query($sql);
+        return $this;
+    }
+
+    
+    public function multiQuery(string $sql){
+        $this->db->multiQuery($sql);
         return $this;
     }
 
