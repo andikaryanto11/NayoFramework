@@ -7,7 +7,9 @@ use Core\Interfaces\IDbDriver;
 
 class Mysqli implements IDbDriver{
 
-    protected $conn = false;  //DB connection resources
+    protected static $instance = false;
+
+    public $conn = false;  //DB connection resources
 
     protected $sql; 
 
@@ -21,7 +23,7 @@ class Mysqli implements IDbDriver{
     /**
      * Class constructor.
      */
-    public function __construct()
+    private function __construct()
     {
 
         Connection::init();
@@ -32,6 +34,12 @@ class Mysqli implements IDbDriver{
         } 
     }
 
+    public static function getInstance(){
+        if(!self::$instance)
+            self::$instance = new static;
+    
+        return self::$instance;
+    }
 
     public function getConnection(){
         return $this->conn;
@@ -40,7 +48,8 @@ class Mysqli implements IDbDriver{
     public function getFields($table)
     {
         $sql = "DESC ". $table;
-        $result = $this->query($sql, false)->fetch();
+        $this->query($sql, false);
+        $result = $this->fetch();
         $pk;
         if($result){
             foreach ($result as $v) {
@@ -82,7 +91,6 @@ class Mysqli implements IDbDriver{
     
             file_put_contents("log.txt", $str, FILE_APPEND);
         }
-
         $this->statement = mysqli_query($this->conn, $this->sql);
         
         if (! $this->statement) {
@@ -134,7 +142,7 @@ class Mysqli implements IDbDriver{
                }
             }while (mysqli_next_result($this->conn));
          } else {
-             echo "shit";
+            //  echo "shit";
          }
         return $this;
     }
@@ -245,4 +253,21 @@ class Mysqli implements IDbDriver{
     public function close(){
         mysqli_close($this->conn);
     }
+
+    public function beginTransaction()
+    {
+        mysqli_begin_transaction($this->conn);
+    }
+    
+    public function commit()
+    {
+        mysqli_commit($this->conn);
+    }
+    
+    public function rollback()
+    {
+        mysqli_rollback($this->conn);
+    }
+
+    
 }

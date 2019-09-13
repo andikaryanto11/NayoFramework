@@ -1,0 +1,7 @@
+{
+    "name": "andikaryanto11/nayoframeworkcore",
+    "description": "Nahyo Framework Core",
+    "require": {
+        "php": "^7.2"
+    }
+}

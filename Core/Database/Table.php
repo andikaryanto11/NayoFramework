@@ -29,7 +29,7 @@ class Table {
             $drivertype = !empty($this->connection->getDriverType()) ? $this->connection->getDriverType()."\\" : "Driver\\";
             $ent = "Core\\Database\\".$drivertype.$this->connection->drivers()[$this->connection->getDriverClass()];
             // echo $ent;
-            $this->db = new $ent;
+            $this->db = $ent::getInstance();
             // echo $this->connection->drivers()[$this->connection->getDriverClass()];
         }
     }
@@ -136,7 +136,7 @@ class Table {
             $creation .= " ENGINE = {$engine} DEFAULT CHARSET = {$charset}";
             // echo $creation;
             $this->db->query($creation);
-            $this->db->close();
+            // $this->db->close();
 
         } else if($this->connection->getDriverClass() == 'sqlsrv'){
 
@@ -192,7 +192,7 @@ class Table {
             $creation = str_replace(["@table", "@columns"], [$this->table, $strColumn], $this->creation);
             // echo $creation;
             $this->db->query($creation);
-            $this->db->close();
+            // $this->db->close();
         }
 
     }
@@ -260,7 +260,7 @@ class Table {
             $alter = str_replace(["@table", "@columns"], ["`".$this->table."`", $strColumn], $this->alter);
             // echo $alter;
             $this->db->query($alter);
-            $this->db->close();
+            // $this->db->close();
             
 
         } else if($this->connection->getDriverClass() == 'sqlsrv'){
@@ -323,7 +323,7 @@ class Table {
                 // echo $alter;
                 $this->db->query($alter);
             }
-            $this->db->close();
+            // $this->db->close();
         }
     }
 
@@ -356,7 +356,7 @@ class Table {
 
             // echo $seed;
             $this->db->query($seed);
-            $this->db->close();
+            // $this->db->close();
             $this->seeds = array();
 
         } else if($this->connection->getDriverClass() == 'sqlsrv'){ 
@@ -372,7 +372,7 @@ class Table {
             $seed = str_replace(["@table", "@columns", "@values"], [$this->table, $strcolumn, $strvalue], $this->seed);
             // echo $seed;
             $this->db->query($seed);
-            $this->db->close();
+            // $this->db->close();
             $this->seeds = array();
         }
     }

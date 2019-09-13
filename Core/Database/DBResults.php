@@ -35,11 +35,11 @@ class DBResults {
             $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
             $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
             // echo $ent;
-            $this->db = new $ent;
+            $this->db = $ent::getInstance();
             // echo Connection::drivers()[Connection::getDriverClass()];
         }
             
-        $this->sql = "select * from ".$this->table;
+        $this->sql = "select {$this->table}.* from ".$this->table;
         // field collected
         
         if($this->table)
@@ -94,7 +94,7 @@ class DBResults {
 
         $this->result = $query;
         
-        $this->db->close();
+        // $this->db->close();
 
         return $this->result;
     }
@@ -128,10 +128,10 @@ class DBResults {
             $this->db->query($this->sql);
             if ($this->db->getStatement()) {
                 $newid = $this->db->getInsertId();
-                $this->db->close();
+                // $this->db->close();
                 return $newid;
             } else {
-                $this->db->close();
+                // $this->db->close();
                 return false;
 
             }
@@ -156,10 +156,10 @@ class DBResults {
         $this->sql = "UPDATE {$this->table} SET ".implode(",",$list)." WHERE Id = ".$object->Id;
         $this->db->query($this->sql);
         if ($this->db->getStatement()) {
-            $this->db->close();
+            // $this->db->close();
             return $object->Id;
         } else {
-            $this->db->close();
+            // $this->db->close();
             return false;
         }
     }
@@ -174,7 +174,7 @@ class DBResults {
         $this->sql = "DELETE FROM {$this->table} WHERE Id = ".$id;
         $this->db->query($this->sql);
         $res = $this->db->getStatement();
-        $this->db->close();
+        // $this->db->close();
         return $res;
     
         

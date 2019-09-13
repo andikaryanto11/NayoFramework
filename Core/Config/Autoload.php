@@ -15,9 +15,11 @@ $corenamespaces = [
         'Connection',
         'DBBuilder',
         'DBResults',
+        'DbTrans',
         'Migration',
         'Seed',
-        'Table'
+        'Table',
+
     ],
     'Core/Interfaces' => [
         'IClsList',
@@ -38,7 +40,8 @@ $corenamespaces = [
         'Dictionary',
         'File',
         'Ftp',
-        'Helper'
+        'Helper',
+        'Redirect'
     ],
     'Core/Rest' => [
         'Response'

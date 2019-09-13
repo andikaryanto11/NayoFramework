@@ -5,10 +5,10 @@ function escapeString(string $string)
     return str_replace("'", "''", $string);
 }
 
-function columnValidate(string $string, $openmark, $closeMark, $isUseSymbol = true)
+function columnValidate(string $string, $openMark, $closeMark, $isUseSymbol = true)
 {
     $equal = "=";
-    $phrase = str_replace([" "], [""], $string);
+    $phrase = str_replace([" ", "."], ["", "{$closeMark}.{$openMark}"], $string);
 
     $cond = ["!", "<>", "<", ">", "<=", ">="];
 
@@ -23,7 +23,7 @@ function columnValidate(string $string, $openmark, $closeMark, $isUseSymbol = tr
                 }
             } else {
                 if (preg_match("/(<|>|<=|>=)$/", $phrase) > 0) {
-
+                    
                 } else {
                     return $phrase.$closeMark.$equal;
                 }

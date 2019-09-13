@@ -24,7 +24,7 @@ class Migration {
             $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
             $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
             // echo $ent;
-            $this->db = new $ent;
+            $this->db = $ent::getInstance();
             // echo Connection::$drivers()[Connection::$getDriverClass()];
         }
         

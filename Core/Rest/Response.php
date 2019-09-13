@@ -6,8 +6,8 @@ class Response {
     public function __construct()
     {
         
-        // header("Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Content-Type, Accept");
-        // header('Content-Type: application/json');
+        header("Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Content-Type, Accept");
+        header('Content-Type: application/json');
     }
 
     /**
@@ -40,7 +40,10 @@ class Response {
     public function getHeader($header = null){
         $headers = apache_request_headers();
         if($header){
-            return $headers[$header];
+            if(isset($headers[$header]))
+                return $headers[$header];
+            else 
+                return null;
         } 
         return $headers;
 

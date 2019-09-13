@@ -7,7 +7,9 @@ use Core\Interfaces\IDbDriver;
 
 class Mssql implements IDbDriver{
 
-    protected $conn = false;  //DB connection resources
+    protected static $instance = false;
+
+    public $conn = false;  //DB connection resources
 
     protected $sql;           //sql statement
 
@@ -24,6 +26,13 @@ class Mssql implements IDbDriver{
             $this->conn = mssql_connect(Connection::$host, Connection::$user, Connection::$password, Connection::$dbname) or die('Database connection error');
             $this->currentdb = Connection::$dbname;
         } 
+    }
+
+    public static function getInstance(){
+        if(!self::$instance)
+            self::$instance = new static;
+    
+        return self::$instance;
     }
 
 
@@ -73,7 +82,6 @@ class Mssql implements IDbDriver{
     public function query($sql){        
 
         $this->sql = $sql;
-
         // Write SQL statement into log
 
         $str = $sql . "  [". date("Y-m-d H:i:s") ."]" . PHP_EOL;
@@ -94,7 +102,7 @@ class Mssql implements IDbDriver{
             return $arr; //$this->errno().':'.$this->error().'\nError SQL statement is '.$this->sql.'\n';
 
         }
-        return $result;
+        return $this;
 
     }  
     
@@ -192,5 +200,22 @@ class Mssql implements IDbDriver{
 
     public function close(){
         mysqli_close($this->conn);
+    }
+
+    
+
+    public function beginTransaction()
+    {
+        mysqli_begin_transaction($this->conn);
+    }
+    
+    public function commit()
+    {
+        mysqli_commit($this->conn);
+    }
+    
+    public function rollback()
+    {
+        mysqli_rollback($this->conn);
     }
 }

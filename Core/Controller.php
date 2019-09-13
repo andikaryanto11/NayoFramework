@@ -15,9 +15,9 @@ class Nayo_Controller{
     public function __construct(){
 
         if(!$this->request)
-            $this->request = new Request();
+            $this->request = Request::getInstance();
         if(!$this->session)
-            $this->session = new Session();
+            $this->session = Session::getInstance();
 
         if($GLOBALS['config']['csrf_security']){
             switch($this->request->request()['REQUEST_METHOD']){
@@ -42,11 +42,18 @@ class Nayo_Controller{
         }
     }
 
-    public function view(string $url = "", $datas = array()){
+    public function view(string $url = "", $datas = array(), $clearData = true){
         // echo $url;
         extract($datas) ;
+        // $this->session->unset('data');
         include(APP_PATH."Views/".$url.".php");
+        if($clearData)
+            $this->clearData();
 
+    }
+
+    private function clearData(){
+        $this->session->unset('data');
     }
 
     public function blade($path, $datas = array()){

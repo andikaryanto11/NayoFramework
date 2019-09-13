@@ -4,10 +4,14 @@ function lang($params = ''){
     
     require CONFIG_PATH . "Config.php";
     
-    $languange = $config['language'];
+    $language = $config['language'];
+    
+    if(isset(app()->language))
+        $language = app()->language;
+
     $param = explode(".", $params);
 
-    require APP_LANGUAGE_PATH.$languange."/".$param[0].".php";
+    require APP_LANGUAGE_PATH.$language."/".$param[0].".php";
 
     return $lang[$param[1]];
     

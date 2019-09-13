@@ -18,4 +18,8 @@ interface IDbDriver {
     public function errno();
     public function error();
     public function close();
+
+    public function beginTransaction();
+    public function commit();
+    public function rollback();
 }

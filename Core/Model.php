@@ -6,12 +6,12 @@ use Core\Database\DBResults;
 use Core\Database\Connection;
 use Core\Session;
 use Core\Libraries\ClsList;
+use Exception;
 
 class Nayo_Model
 {
     protected $db = false;
     protected $db_result = false;
-    protected $session = false;
     // protected $table = false;
     //filtering
     protected $append = "";
@@ -25,10 +25,20 @@ class Nayo_Model
 
     public function __construct()
     {
-
-        if (!$this->session)
-            $this->session = new Session();
     }
+
+    // public function __set($name, $value) {
+    //     if (!isset($this->$$name)) {
+    //         throw new Exception($name.' property does not exist');
+    //     }
+    // }
+
+    // public function __get($name) {
+    //     if (!isset($this->$$name)) {
+    //         $ex = new Exception('Undefined variable: $'.$name);
+    //         Nayo_Exception::exceptionHandler($ex);
+    //     }
+    // }
 
     public function connection()
     {
@@ -67,6 +77,7 @@ class Nayo_Model
     public function findAll($filter = array())
     {
 
+        $join = (isset($filter['join']) ? $filter['join'] : FALSE);
         $where = (isset($filter['where']) ? $filter['where'] : FALSE);
         $wherein = (isset($filter['whereIn']) ? $filter['whereIn'] : FALSE);
         $orwhere = (isset($filter['orWhere']) ? $filter['orWhere'] : FALSE);
@@ -78,6 +89,9 @@ class Nayo_Model
         $group = (isset($filter['group']) ? $filter['group'] : FALSE);
 
         // echo json_encode($where);
+        if ($join)
+            $this->join($join);
+
         if ($where)
             $this->where($where);
 
@@ -195,6 +209,23 @@ class Nayo_Model
         // return $this->db_result->delete($this->Id);
         return $db_result->delete($this->Id);
         // return $this;
+    }
+
+    private function join($join){
+        $this->connection();
+        $qry = "";
+        foreach($join as $k => $v){
+            if(isset($v['type'])){
+                $qry .= strtoupper($v['type']). " JOIN ";
+            } else {
+                $qry .= "INNER JOIN ";
+            }
+
+            $qry .= $this->columnOpenMark.columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false)." ON ".$this->columnOpenMark.columnValidate($k.".Id", $this->columnOpenMark, $this->columnCloseMark) .$this->columnOpenMark.columnValidate("{$v['table']}.{$v['column']}", $this->columnOpenMark, $this->columnCloseMark, false);
+        }
+        $this->append .= $qry;
+        return $this;
+
     }
 
     private function where($where)

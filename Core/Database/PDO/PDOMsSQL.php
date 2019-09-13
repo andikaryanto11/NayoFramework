@@ -6,9 +6,10 @@ use Core\Database\Connection;
 use \PDO;
 
 class PDOMsSQL implements IDbDriver{
-    
-   
-    protected $conn = false;  //DB connection resources
+
+    protected static $instance = false;
+
+    public $conn = false;  //DB connection resources
 
     protected $sql;           //sql statement
 
@@ -23,7 +24,7 @@ class PDOMsSQL implements IDbDriver{
     /**
      * Class constructor.
      */
-    public function __construct()
+    private function __construct()
     {
         Connection::init();
 
@@ -36,6 +37,13 @@ class PDOMsSQL implements IDbDriver{
                 die();
             }
         }
+    }
+
+    public static function getInstance(){
+        if(!self::$instance)
+            self::$instance = new static;
+    
+        return self::$instance;
     }
 
     public function getConnection(){
@@ -146,5 +154,20 @@ class PDOMsSQL implements IDbDriver{
 
     public function close(){
         $this->conn = null;
+    }
+
+    public function beginTransaction()
+    {
+        $this->conn->beginTransaction();
+    }
+    
+    public function commit()
+    {
+        $this->conn->commit();
+    }
+    
+    public function rollback()
+    {
+        $this->conn->rollBack();
     }
 }

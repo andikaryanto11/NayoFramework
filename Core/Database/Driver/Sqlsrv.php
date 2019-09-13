@@ -7,7 +7,9 @@ use Core\Interfaces\IDbDriver;
 
 class Sqlsrv implements IDbDriver{
 
-    protected $conn = false;  //DB connection resources
+    protected static $instance = false;
+
+    public $conn = false;  //DB connection resources
 
     protected $sql;           //sql statement
 
@@ -21,7 +23,7 @@ class Sqlsrv implements IDbDriver{
     /**
      * Class constructor.
      */
-    public function __construct()
+    private function __construct()
     {
 
         Connection::init();
@@ -44,6 +46,13 @@ class Sqlsrv implements IDbDriver{
         } 
     }
 
+    public static function getInstance(){
+        if(!self::$instance)
+            self::$instance = new static;
+    
+        return self::$instance;
+    }
+
 
     public function getConnection(){
         return $this->conn;
@@ -58,8 +67,9 @@ class Sqlsrv implements IDbDriver{
             AND B.TABLE_NAME = N'$table'
         WHERE A.TABLE_NAME = N'$table'";
 
-        $result = $this->query($sql, false)->fetch();
+        $this->query($sql, false);
         // echo json_encode($result);
+        $result = $this->fetch();
         $pk;
         if($result){
             foreach ($result as $v) {
@@ -242,5 +252,20 @@ class Sqlsrv implements IDbDriver{
 
     public function close(){
         sqlsrv_close($this->conn);
+    }
+
+    public function beginTransaction()
+    {
+        mysqli_begin_transaction($this->conn);
+    }
+    
+    public function commit()
+    {
+        mysqli_commit($this->conn);
+    }
+    
+    public function rollback()
+    {
+        mysqli_rollback($this->conn);
     }
 }

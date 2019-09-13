@@ -1,16 +1,29 @@
 <?php
 namespace Core;
 
-class Nayo_Exception{
+use Exception;
 
-    public function __constructor(){
+class Nayo_Exception extends Exception{
+    public $messages;
+    public $data;
+    public $status;
+
+    public function __construct($messages, $data = array(), $status = array()){
+        parent::__construct();
+        $this->messages = $messages;
+        $this->data = $data;
+        $this->status = $status;
     }
 
-    public static function errorHandler($level, $message, $file, $line)
+    public static function throw($messages, $data = array(), $status = array()){
+        throw new Nayo_Exception($messages, $data, $status);
+    }
+
+    public static function errorHandler($level, $messages, $file, $line)
     {
         // echo $file;
         if (error_reporting() !== 0) {  // to keep the @ operator working
-            throw new \ErrorException($message, 0, $level, $file, $line);
+            throw new \ErrorException($messages, 0, $level, $file, $line);
         }
     }
 
@@ -34,11 +47,11 @@ class Nayo_Exception{
             // $log = dirname(__DIR__) . '/logs/' . date('Y-m-d') . '.txt';
             // ini_set('error_log', $log);
 
-            echo "<div style= 'border-style: solid;border-color: red; padding : 0px 50px;'>";
+            echo "<div style= 'border-style: solid;border-color: red; padding : 0px 50px; margin:0 50px;'>";
             echo "<br><b>A PHP Error was enccounter</b></br>";
             echo "<br>Error Code : '" . $code . "'</br>";
             echo "<br>Uncaught exception: '" . get_class($exception) . "'</br>";
-            echo "<br>with message : '" . $exception->getMessage() . "'</br>";
+            echo "<br>Message : '" . $exception->getMessage() . "'</br>";
 
             $i=0;
             $stacktrace = explode("#", $exception->getTraceAsString());

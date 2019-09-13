@@ -14,7 +14,7 @@ class DBBuilder {
             $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
             $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
             // echo $ent;
-            $this->db = new $ent;
+            $this->db = $ent::getInstance();
             // echo Connection::drivers()[Connection::getDriverClass()];
         }
     }
@@ -37,17 +37,17 @@ class DBBuilder {
     
     public function fetchObject(){
         $result = $this->db->fetchObject();
-        $this->db->close();
+        // $this->db->close();
         return $result;
     }
 
     public function fetch(){
         $result = $this->db->fetch();
-        $this->db->close();
+        // $this->db->close();
         return $result;
     }
 
     public function execute(){
-        $this->db->close();
+        // $this->db->close();
     }
 }

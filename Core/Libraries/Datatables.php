@@ -26,7 +26,7 @@ class Datatables {
             $this->filter = $filter;
         
         if(!$this->request)
-            $this->request = new Request();
+            $this->request = Request::getInstance();
     }
 
     private function newEntity(){
