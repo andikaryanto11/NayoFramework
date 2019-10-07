@@ -21,11 +21,7 @@ class Seed {
         Connection::init();
 
         if(!$this->db){
-            $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
-            $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
-            // echo $ent;
-            $this->db = $ent::getInstance();
-            // echo Connection::$drivers()[Connection::$getDriverClass()];
+            $this->db = Connection::getDriver();
         }
         
         if($this->enable_auto_seed)
@@ -83,7 +79,7 @@ class Seed {
 
         if(!in_array(explode("_",$version)[1], $this->version)) {
             $dbversion = explode("_",$version);
-            require_once APP_PATH. "Database\\Seeds\\".$version.".php";
+            include APP_PATH. "Database\\Seeds\\".$version.".php";
 
             $path = "App\\Database\\Seeds\\".$version;
             $seed = new $path;

@@ -206,6 +206,11 @@ class Mysqli implements IDbDriver{
         return $this->statement;
     }
 
+    public function escapeString($string)
+    {
+        return mysqli_real_escape_string($this->conn, $string);
+    }
+
     /**
 
      * Get last insert id

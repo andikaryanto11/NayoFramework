@@ -32,11 +32,7 @@ class DBResults {
         }
         
         if(!$this->db){
-            $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
-            $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
-            // echo $ent;
-            $this->db = $ent::getInstance();
-            // echo Connection::drivers()[Connection::getDriverClass()];
+            $this->db = Connection::getDriver();
         }
             
         $this->sql = "select {$this->table}.* from ".$this->table;

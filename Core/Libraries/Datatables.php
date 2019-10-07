@@ -37,10 +37,11 @@ class Datatables {
     public function populate(){
 
         $model = $this->newEntity();
-        $params = array(
-            'where' => isset($this->filter['where']) ? $this->filter['where'] : null
-
-        );
+        $params = array();
+        
+        $params['whereIn'] = isset($this->filter['whereIn']) ? $this->filter['whereIn'] : null;
+        $params['where'] = isset($this->filter['where']) ? $this->filter['where'] : null;
+        $params['join'] = isset($this->filter['join']) ? $this->filter['join'] : null;
 
         if($this->request->get('length') != -1){
             $params['limit'] = array(
@@ -86,6 +87,7 @@ class Datatables {
     private function allData($filter = array()){
         $model = $this->newEntity();
         $params = array(
+            'join' => isset($filter['join']) ? $filter['join'] : null,
             'where' => isset($filter['where']) ? $filter['where'] : null,
             'group' => isset($filter['group']) ? $filter['group'] : null,
             'order' => isset($filter['order']) ? $filter['order'] : null,

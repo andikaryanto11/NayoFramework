@@ -22,15 +22,10 @@ class Table {
      */
     public function __construct()
     {
-        if(!$this->connection)
-            $this->connection = new Connection();
-        
+        Connection::init();
+
         if(!$this->db){
-            $drivertype = !empty($this->connection->getDriverType()) ? $this->connection->getDriverType()."\\" : "Driver\\";
-            $ent = "Core\\Database\\".$drivertype.$this->connection->drivers()[$this->connection->getDriverClass()];
-            // echo $ent;
-            $this->db = $ent::getInstance();
-            // echo $this->connection->drivers()[$this->connection->getDriverClass()];
+            $this->db = Connection::getDriver();
         }
     }
 
@@ -76,7 +71,7 @@ class Table {
 
     public function create(){
 
-        if($this->connection->getDriverClass() == 'mysql' || $this->connection->getDriverClass() == 'mysqli'){
+        if(Connection::getDriverClass() == 'mysql' || Connection::getDriverClass() == 'mysqli'){
 
             $primarykey = "PRIMARY KEY ( @key )";
             $columns = array();
@@ -130,15 +125,15 @@ class Table {
 
             $creation = str_replace(["@table", "@columns"], ["`".$this->table."`", $strColumn], $this->creation);
 
-            $charset = !empty($this->connection->charset) ? $this->connection->charset : "utf8";
-            $engine = !empty($this->connection->engine) ? $this->connection->engine : "InnoDB";
+            $charset = !empty(Connection::$charset) ? Connection::$charset : "utf8";
+            $engine = !empty(Connection::$engine) ? Connection::$engine : "InnoDB";
 
             $creation .= " ENGINE = {$engine} DEFAULT CHARSET = {$charset}";
             // echo $creation;
             $this->db->query($creation);
             // $this->db->close();
 
-        } else if($this->connection->getDriverClass() == 'sqlsrv'){
+        } else if(Connection::getDriverClass() == 'sqlsrv'){
 
             $columns = array();
             foreach($this->addedcolumns as $column){
@@ -201,7 +196,7 @@ class Table {
 
         $columns = array();
         
-        if($this->connection->getDriverClass() == 'mysql' || $this->connection->getDriverClass() == 'mysqli'){
+        if(Connection::getDriverClass() == 'mysql' || Connection::getDriverClass() == 'mysqli'){
 
             foreach($this->addedcolumns as $column){
                 
@@ -263,7 +258,7 @@ class Table {
             // $this->db->close();
             
 
-        } else if($this->connection->getDriverClass() == 'sqlsrv'){
+        } else if(Connection::getDriverClass() == 'sqlsrv'){
 
             foreach($this->addedcolumns as $column){
                 
@@ -342,7 +337,7 @@ class Table {
         $columns = array();
         $values = array();
 
-        if($this->connection->getDriverClass() == 'mysql' || $this->connection->getDriverClass() == 'mysqli'){
+        if(Connection::getDriverClass() == 'mysql' || Connection::getDriverClass() == 'mysqli'){
             
             foreach($this->seeds as $seed){
                 array_push($columns, "`".$seed['Column']."`");
@@ -359,7 +354,7 @@ class Table {
             // $this->db->close();
             $this->seeds = array();
 
-        } else if($this->connection->getDriverClass() == 'sqlsrv'){ 
+        } else if(Connection::getDriverClass() == 'sqlsrv'){ 
 
             foreach($this->seeds as $seed){
                 array_push($columns, "[".$seed['Column']."]");

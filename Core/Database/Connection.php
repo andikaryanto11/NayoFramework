@@ -85,4 +85,12 @@ class Connection {
     public static function drivers(){
         return self::$drivers;
     }
+
+    public function getDriver(){
+
+        $drivertype = !empty(self::getDriverType()) ? self::getDriverType()."\\" : "Driver\\";
+        $ent = "Core\\Database\\".$drivertype.self::drivers()[self::getDriverClass()];
+
+        return $ent::getInstance();
+    }
 }

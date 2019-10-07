@@ -205,6 +205,11 @@ class Sqlsrv implements IDbDriver{
         return $this->statement;
     }
 
+    public function escapeString($string)
+    {
+        return sqlsrv_real_escape_string($this->conn, $string);
+    }
+
     /**
 
      * Get last insert id

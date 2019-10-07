@@ -14,18 +14,14 @@ class Migration {
     protected $countMigrated = 0;
     public function __construct(){
 
-        include "App\Config\Config.php";
+        include APP_PATH."Config\Config.php";
 
         $this->enable_auto_migration = $config['enable_auto_migration'];
 
         Connection::init();
 
         if(!$this->db){
-            $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
-            $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
-            // echo $ent;
-            $this->db = $ent::getInstance();
-            // echo Connection::$drivers()[Connection::$getDriverClass()];
+            $this->db = Connection::getDriver();
         }
         
         if($this->enable_auto_migration)
@@ -83,9 +79,9 @@ class Migration {
 
         if(!in_array(explode("_",$version)[1], $this->version)) {
             $dbversion = explode("_",$version);
-            require_once APP_PATH. "Database\\Migrations\\".$version.".php";
+            include "App\\Database\\Migrations\\{$version}.php";
 
-            $path = "App\\Database\\Migrations\\".$version;
+            $path =  "App\\Database\\Migrations\\{$version}";
             $migration = new $path;
             $migration->up();
             echo $version. " : migrated successfuly \n";

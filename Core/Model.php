@@ -254,6 +254,7 @@ class Nayo_Model
 
     private function whereIn($whereIn)
     {
+        // echo $this->append;
         $this->connection();
         $qry = "";
         if (count($this->where) == 0)
@@ -276,7 +277,6 @@ class Nayo_Model
         }
         if (!empty($wheres))
             $this->append .= $qry . implode(" AND ", $wheres);
-        // echo $this->append;
         return $this;
     }
 
@@ -686,7 +686,12 @@ if (!defined('MYSQL_EMPTYDATETIME')) define('MYSQL_EMPTYDATETIME', '0000-00-00 0
 if (!function_exists('table')) {
     function table($entity)
     {
-        return pluralize($entity);
+        $tab = pluralize($entity);
+        
+        $split = explode("_", $tab);
+        return $split[0]."_".lcfirst($split[1]);
+        // return $tab;
+        
     }
 }
 

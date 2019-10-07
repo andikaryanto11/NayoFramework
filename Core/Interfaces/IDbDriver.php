@@ -11,6 +11,7 @@ interface IDbDriver {
     public function getAll($sql);
     public function getOne($sql);
     public function getStatement();
+    public function escapeString($string);
 
     public function getFields($table);
     public function pk();
