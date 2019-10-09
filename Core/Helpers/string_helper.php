@@ -4,14 +4,9 @@ use Core\Database\Connection;
 
 function escapeString(string $string)
 {
-    Connection::init();
-    $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
-    $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
-    // echo $ent;
-    $db = $ent::getInstance();
+    $db = Connection::getDriver();
     
     return $db->escapeString($string);
-    // return str_replace(["'","\\"], ["''","\\'"], $string);
 }
 
 function columnValidate(string $string, $openMark, $closeMark, $isUseSymbol = true)

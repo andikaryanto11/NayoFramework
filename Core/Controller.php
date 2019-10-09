@@ -6,7 +6,7 @@ use eftec\bladeone\BladeOne;
 
 class Nayo_Controller{
     protected $request = false;
-    protected $session = false;
+    // protected $session = false;
     protected $blade = false;
     // protected $security = false;
     public $tokenname = "";
@@ -16,27 +16,27 @@ class Nayo_Controller{
 
         if(!$this->request)
             $this->request = Request::getInstance();
-        if(!$this->session)
-            $this->session = Session::getInstance();
+        // if(!$this->session)
+        //     $this->session = Session::getInstance();
 
         if($GLOBALS['config']['csrf_security']){
             switch($this->request->request()['REQUEST_METHOD']){
                 case 'POST' :
-                    if(!hash_equals($this->session->get('csrfToken'), $this->request->post(CSRF::getCsrfTokenName()))){
+                    if(!hash_equals(Session::get('csrfToken'), $this->request->post(CSRF::getCsrfTokenName()))){
                         die('Invalid Token');
                     }
-                    $this->session->set('csrfName', CSRF::getCsrfTokenName());
-                    $this->session->set('csrfToken', CSRF::getCsrfHash());
+                    Session::set('csrfName', CSRF::getCsrfTokenName());
+                    Session::set('csrfToken', CSRF::getCsrfHash());
                     break;
                 default : 
-                    $this->session->set('csrfName', CSRF::getCsrfTokenName());
-                    $this->session->set('csrfToken', CSRF::getCsrfHash());
+                    Session::set('csrfName', CSRF::getCsrfTokenName());
+                    Session::set('csrfToken', CSRF::getCsrfHash());
                     break;
             }
         } else {
-            if($this->session->get('csrfName')){
-                $this->session->unset('csrfName');
-                $this->session->unset('csrfToken');
+            if(Session::get('csrfName')){
+                Session::unset('csrfName');
+                Session::unset('csrfToken');
                 
             }
         }
@@ -45,7 +45,7 @@ class Nayo_Controller{
     public function view(string $url = "", $datas = array(), $clearData = true){
         // echo $url;
         extract($datas) ;
-        // $this->session->unset('data');
+        // Session::unset('data');
         include(APP_PATH."Views/".$url.".php");
         if($clearData)
             $this->clearData();
@@ -53,14 +53,16 @@ class Nayo_Controller{
     }
 
     private function clearData(){
-        $this->session->unset('data');
+        Session::unset('data');
     }
 
-    public function blade($path, $datas = array()){
+    public function blade($path, $datas = array(), $clearData = true){
 
         $this->blade = new BladeOne(APP_PATH."Views/", APP_CACHE, BladeOne::MODE_AUTO);
         $this->bladeInclude();
         echo $this->blade->run($path, $datas);
+        if($clearData)
+            $this->clearData();
 
     }
 

@@ -20,7 +20,7 @@ class Session {
      * @param string $value 
      */
 
-    public function set($name, $value){
+    public static function set($name, $value){
         $_SESSION[$name] = $value;
     }
 
@@ -28,7 +28,7 @@ class Session {
      * @param string $name 
      * @param string $value 
      */
-    public function get($name){
+    public static function get($name){
         if(isset($_SESSION[$name]))
             return $_SESSION[$name];
         return null;
@@ -36,14 +36,14 @@ class Session {
 
     /** 
      */
-    public function destroy(){
+    public static function destroy(){
         session_destroy();
     }
 
     /**
      * @param string $name 
      */
-    public function unset($name){
+    public static function unset($name){
         unset($_SESSION[$name]);
     }
 
@@ -51,7 +51,7 @@ class Session {
      * @param string $name 
      * @param array $value 
      */
-    public function setFlash($name, $value = array()){
+    public static function setFlash($name, $value = array()){
         if (!isset($_SESSION['flash'])) {
             $_SESSION['flash'] = array();
         }
@@ -61,7 +61,7 @@ class Session {
     /**
      * @param string $name 
      */
-    public function getFlash($name){
+    public static function getFlash($name){
         if (isset($_SESSION['flash'][$name])) {
             $flash = $_SESSION['flash'][$name];
             unset($_SESSION['flash'][$name]);
@@ -73,7 +73,7 @@ class Session {
     /**
      * @param string $name 
      */
-    public function isFlashExist($name){
+    public static function isFlashExist($name){
         if (isset($_SESSION['flash'][$name])) {
            
             return true;

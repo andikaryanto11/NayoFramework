@@ -44,7 +44,8 @@ $corenamespaces = [
         'Redirect'
     ],
     'Core/Rest' => [
-        'Response'
+        'Response',
+        'Curl'
     ]
 
 ];
