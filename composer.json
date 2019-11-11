@@ -1,5 +1,5 @@
 {
-    "name": "andikaryanto/nayofrmework",
+    "name": "andikaryanto/nayoframework",
     "description": "nayo framework is a MVC php framework",
     "require": {
         "php": "^7.2",
