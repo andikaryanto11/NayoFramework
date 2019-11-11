@@ -354,9 +354,10 @@ class Nayo_Model
         $this->connection();
         if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
 
-            $qry = " LIMIT ";
-
-            $this->append .= $qry . ($limit['page'] - 1) . ", " . $limit['size'];
+            if($limit['page'] && $limit['size']){
+                $qry = " LIMIT ";
+                $this->append .= $qry . ($limit['page'] - 1) . ", " . $limit['size'];
+            }
         } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
             $order = "";
 

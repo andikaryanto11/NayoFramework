@@ -21,6 +21,15 @@ class Loader{
 
     }
 
+    public function appClasses($libs = array()){
+
+        foreach($libs as $key => $lib){
+            foreach($lib as $file)
+                require ucfirst("$key\\$file.php");
+        }
+
+    }
+
     public function coreThirdParty($thirds = array()){
         foreach($thirds as $third){
             include THIRD_PARTY_PATH . ucfirst("$third.php");

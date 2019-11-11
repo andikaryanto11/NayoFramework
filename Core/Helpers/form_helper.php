@@ -5,20 +5,16 @@ use Core\Session;
 function formOpen($action = "", $props = array(), $method = "POST")
 {
     $form = "";
-    if (empty($props)) {
-        $form = "<form method = '{$method}' action='{$action}'> ";
-        if ($GLOBALS['config']['csrf_security']) {
-            $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
+    $property = "";
+    if (!empty($props)) {
+        foreach ($props as $key => $prop) {
+            $property .= "{$key} = '{$prop}'";
         }
-    } else { 
-        $property = "";
-        foreach($props as $key => $prop){
-            $property.= "{$key} = '{$prop}'";
-        }
-        $form = "<form method = '{$method}' action='{$action}' {$property}> ";
-        if ($GLOBALS['config']['csrf_security']) {
-            $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
-        }
+    }
+
+    $form = "<form method = '{$method}' action='{$action}' {$property}> ";
+    if ($GLOBALS['config']['csrf_security']) {
+        $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
     }
     return $form;
 }
@@ -26,21 +22,17 @@ function formOpen($action = "", $props = array(), $method = "POST")
 function formOpenMultipart($action = "", $props = array(), $method = "POST")
 {
     $form = "";
-    if (empty($props)) {
-        $form = "<form method = '{$method}' action='{$action}' enctype='multipart/form-data'>";
-        if ($GLOBALS['config']['csrf_security']) {
-            $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
+    $property = "";
+    if (!empty($props)) {
+        foreach ($props as $key => $prop) {
+            $property .= "{$key} = '{$prop}'";
         }
-    } else {
-        $property = "";
-        foreach($props as $key => $prop){
-            $property.= "{$key} = '{$prop}'";
-        }
-        $form = "<form method = '{$method}' action='{$action}' {$property}> ";
-        if ($GLOBALS['config']['csrf_security']) {
-            $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
-        }
-     }
+    }
+
+    $form = "<form method = '{$method}' action='{$action}' {$property}  enctype='multipart/form-data'> ";
+    if ($GLOBALS['config']['csrf_security']) {
+        $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
+    }
     return $form;
 }
 
@@ -52,15 +44,14 @@ function formClose()
 function formInput($props = array())
 {
 
-    $session = Session::getInstance();
     $inputProp = "";
     $sesdata = null;
-    if ($session->get('data')) {
-        $sesdata = $session->get('data');
+    $datavalue = null;
+    if (\Core\Session::get('data')) {
+        $sesdata = \Core\Session::get('data');
     }
 
     if (!empty($props)) {
-        $datavalue = null;
         if (key_exists('name', $props) && $sesdata) {
             if (key_exists($props['name'], $sesdata)) {
                 $datavalue = $sesdata[$props['name']];
@@ -68,13 +59,14 @@ function formInput($props = array())
         }
 
         foreach ($props as $key => $val) {
-            if ($key == "value" && $datavalue) {
-                $val = htmlspecialchars($datavalue, ENT_QUOTES);
+            $newvalue = null;
+            if ($key == "value" && !is_null($datavalue)) {
+                $newvalue = htmlspecialchars($datavalue, ENT_QUOTES);
             } else {
-                $val = htmlspecialchars($val, ENT_QUOTES);
+                $newvalue = htmlspecialchars($val, ENT_QUOTES);
             }
-            if ($val) {
-                $inputProp .= $key . " = '{$val}'";
+            if (!empty($newvalue)) {
+                $inputProp .= $key . " = '{$newvalue}'";
             } else {
                 $inputProp .= " " . $key . " ";
             }
@@ -115,14 +107,13 @@ function formSelect($datas, $value, $name, $props = array())
 
 function formTextArea($text = "", $props = array())
 {
-    $session = Session::getInstance();
     $sesdata = null;
     $value = "";
-    
-    if ($session->get('data')) {
-        $sesdata = $session->get('data');
+
+    if (\Core\Session::get('data')) {
+        $sesdata = \Core\Session::get('data');
     }
-    
+
     if (key_exists('name', $props) && $sesdata) {
         if (key_exists($props['name'], $sesdata)) {
             $value = $sesdata[$props['name']];

@@ -141,6 +141,7 @@ class Nayo{
         // $loader->coreLibrary(array('clslist','datatables','','ftp', 'file', 'helper'));
         $loader->appHelper($autoload['helper']);
         $loader->appLibrary($autoload['library']);
+        $loader->appClasses($autoload['classes']);
     }
 
     // Define a custom load method
