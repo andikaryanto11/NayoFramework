@@ -3,16 +3,7 @@
 /**
  * requires and define path
  */
-require_once('core/Nayo.php');
-
-define("DS", DIRECTORY_SEPARATOR);
-
-define("ROOT", getcwd() . DS);
-
-define("BASE_PATH", ROOT);
-
-require BASE_PATH.'vendor/autoload.php';
-
+require_once('Core/Nayo.php');
 /**
  * check if app runs via CLI
  */
@@ -21,9 +12,8 @@ if(php_sapi_name() === 'cli'){
     $args = $argv;  
 }
     
-
 /**
- * Run main apps
+ * Run main apps    
  */
 Nayo::run($args);
 
