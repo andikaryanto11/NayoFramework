@@ -116,12 +116,10 @@ class DBResults {
             }
 
             $lastid = "";
-            if($this->driverclass == 'sqlsrv')
-                $lastid = "; SELECT SCOPE_IDENTITY() as last_ins_id;";
 
             // echo $this->sql;
             $this->sql = "INSERT INTO {$this->table} (".implode(",",$field_list).") VALUES(".implode(",",$value_list).")".$lastid;
-            $this->db->query($this->sql);
+            $this->db->insert($this->sql);
             if ($this->db->getStatement()) {
                 $newid = $this->db->getInsertId();
                 // $this->db->close();
@@ -172,8 +170,13 @@ class DBResults {
         $res = $this->db->getStatement();
         // $this->db->close();
         return $res;
-    
         
+    }
+
+    public function count($append){
+
+        $query = $this->db->getOne("SELECT COUNT(*) as Counted FROM {$this->table} $append"); 
+        return $query['Counted'];
     }
 
 }

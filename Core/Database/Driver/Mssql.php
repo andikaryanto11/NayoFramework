@@ -159,6 +159,11 @@ class Mssql implements IDbDriver{
         return mysqli_real_escape_string($this->conn, $string);
     }
 
+    public function insert($sql){
+        
+        $this->query($sql);
+    }
+
     /**
 
      * Get last insert id

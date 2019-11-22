@@ -142,6 +142,10 @@ class PDOMsSQL implements IDbDriver{
         // return mysqli_real_escape_string($this->conn, $string);
     }
 
+    public function insert($sql){
+        $this->query($sql);
+    }
+
     public function getInsertId(){
         return $this->conn->lastInsertId();
     }

@@ -3,16 +3,6 @@ namespace Core;
 
 class Loader{
 
-// Load library classes
-
-    // public function coreLibrary($libs = array()){
-
-    //     foreach($libs as $lib){
-    //         require LIB_PATH . ucfirst("$lib.php");
-    //     }
-
-    // }
-
     public function appLibrary($libs = array()){
 
         foreach($libs as $lib){

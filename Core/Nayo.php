@@ -6,6 +6,7 @@ class Nayo{
     protected static $controller = "";
     protected static $action = "";
     protected static $routes = array();
+    protected static $instance;
     private static $args = array();
 
     public function __construct(){
@@ -14,21 +15,24 @@ class Nayo{
 
     public static function run($argv){
 
+        self::$instance = new self;
+
         if(empty($argv)){
-            self::init();
+            self::$instance->init();
 
-            self::autoload();
+            self::$instance->autoload();
 
-            self::autoloadfile();
+            self::$instance->autoloadfile();
 
-            // self::migrate();
+            // self::$instance->migrate();
 
-            self::dispatch();
+            self::$instance->dispatch();
             
         } else {
 
-            self::define();
-            self::autoloadfile();
+            self::$instance->define();
+            self::$instance->autoload();
+            self::$instance->autoloadfile();
 
             $function = "";
             $params = array();
@@ -53,14 +57,21 @@ class Nayo{
         
     }
 
-    public static function init(){
+    public  function init(){
         // Define path constants
-        self::define();        
+        self::$instance->define();        
     }
 
-    public static function define(){
+    public  function define(){
 
 
+
+        define("DS", DIRECTORY_SEPARATOR);
+
+        define("ROOT", getcwd() . DS);
+        
+        define("BASE_PATH", ROOT. DS);
+        
         define("APP_PATH", ROOT . 'App' . DS);
 
         define("CORE_PATH", ROOT . "Core" . DS);
@@ -103,70 +114,40 @@ class Nayo{
 
         define("BLADE_CACHE", CORE_BLADE . "Cache");
 
+        require BASE_PATH.'vendor/autoload.php';
 
         // load config
-        
         include CONFIG_PATH . "Config.php";
         global $GLOBALS;
         $GLOBALS['config'] = $config;
 
-        
-
-
         // Start session
-
         session_start();
     }
 
-    private static function autoload() {
-        spl_autoload_register(array(__CLASS__,'load'));
-
+    private  function autoload() {
+        spl_autoload_register(function ($class_name) {
+            include_once(ROOT . $class_name . '.php');
+        });
     }
 
-    private static function autoloadfile(){
+    private  function autoloadfile(){
         require CONFIG_PATH . "Autoload.php";
         
-        include CORE_CONFIG_PATH . "Autoload.php";
-
-        foreach($corenamespaces as $key => $corenamespace){
-            foreach($corenamespace as $filename){
-                
-                require  ROOT . $key ."/".$filename. ".php";
-                
-            }
-        }
         $loader = new Loader();
-        // $loader->readControllers();
         $loader->coreHelper(array('url', 'language', 'helper', 'inflector', 'string', 'file', 'currency', 'form'));
-        // $loader->coreLibrary(array('clslist','datatables','','ftp', 'file', 'helper'));
         $loader->appHelper($autoload['helper']);
-        $loader->appLibrary($autoload['library']);
         $loader->appClasses($autoload['classes']);
     }
 
-    // Define a custom load method
-
-    private static function load($classname){
-
-        // Here simply autoload app’s controller and model classes
-        // echo $classname;
-
-        // if(explode("\\", $classname)[1] == "Models"){
-        //     $name = explode("\\", $classname)[2];
-        //     require_once MODEL_PATH . "$name.php";
-
-        // } 
-
-    }
  
-    private static function dispatch() {
-        // print_r($_GET);
+    private  function dispatch() {
 
         require(APP_PATH."Config/Routes.php");
  
     }
 
-    private static function migrate(){
+    private  function migrate(){
 
     }
 }

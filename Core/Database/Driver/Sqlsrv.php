@@ -207,8 +207,17 @@ class Sqlsrv implements IDbDriver{
 
     public function escapeString($string)
     {
-        return sqlsrv_real_escape_string($this->conn, $string);
+        $pattern = "/'/"; 
+        $replacement = "''"; 
+        return preg_replace($pattern, $replacement, $string);
+        // return sqlsrv_real_escape_string($this->conn, $string);
     }
+
+    public function insert($sql){
+        $lastid = "; SELECT SCOPE_IDENTITY() as last_ins_id;";
+        $this->query($sql.$lastid);
+    }
+
 
     /**
 
