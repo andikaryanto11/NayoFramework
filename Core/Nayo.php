@@ -64,8 +64,6 @@ class Nayo{
 
     public  function define(){
 
-
-
         define("DS", DIRECTORY_SEPARATOR);
 
         define("ROOT", getcwd() . DS);
@@ -120,7 +118,8 @@ class Nayo{
         include CONFIG_PATH . "Config.php";
         global $GLOBALS;
         $GLOBALS['config'] = $config;
-
+        self::checkAppKey();
+       
         // Start session
         session_start();
     }
@@ -135,19 +134,19 @@ class Nayo{
         require CONFIG_PATH . "Autoload.php";
         
         $loader = new Loader();
-        $loader->coreHelper(array('url', 'language', 'helper', 'inflector', 'string', 'file', 'currency', 'form'));
+        $loader->coreHelper(array('config','url', 'language', 'helper', 'inflector', 'string', 'file', 'currency', 'form'));
         $loader->appHelper($autoload['helper']);
         $loader->appClasses($autoload['classes']);
     }
 
- 
     private  function dispatch() {
 
         require(APP_PATH."Config/Routes.php");
  
     }
 
-    private  function migrate(){
-
+    private  function checkAppKey(){
+        if(empty($GLOBALS['config']["app_key"]))
+            die("Application Key Is Not Set, Please Set It First Before Run Your Application");
     }
 }
