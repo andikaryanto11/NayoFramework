@@ -34,3 +34,9 @@ $config['enable_auto_seed'] = TRUE;
  * set true if Use CSRF 
  */
 $config['csrf_security'] = TRUE;
+
+/**
+ * application key
+ * fill it with unique key, ex : 5ddf5470a5e16
+ */
+$config['app_key'] = "";
