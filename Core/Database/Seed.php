@@ -14,7 +14,7 @@ class Seed {
     protected $countMigrated = 0;
     public function __construct(){
 
-        include "App\Config\Config.php";
+        include APP_PATH."Config/Config.php";
 
         $this->enable_auto_seed = $config['enable_auto_seed'];
 
@@ -79,7 +79,7 @@ class Seed {
 
         if(!in_array(explode("_",$version)[1], $this->version)) {
             $dbversion = explode("_",$version);
-            include APP_PATH. "Database\\Seeds\\".$version.".php";
+            include APP_PATH. "Database/Seeds/".$version.".php";
 
             $path = "App\\Database\\Seeds\\".$version;
             $seed = new $path;

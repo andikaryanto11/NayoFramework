@@ -66,9 +66,14 @@ class Datatables
             $model = $this->newEntity();
             $params = array();
 
-            $params['whereIn'] = isset($this->filter['whereIn']) ? $this->filter['whereIn'] : null;
-            $params['where'] = isset($this->filter['where']) ? $this->filter['where'] : null;
             $params['join'] = isset($this->filter['join']) ? $this->filter['join'] : null;
+            $params['where'] = isset($this->filter['where']) ? $this->filter['where'] : null;
+            $params['whereIn'] = isset($this->filter['whereIn']) ? $this->filter['whereIn'] : null;
+            $params['orWhere'] = isset($this->filter['orWhere']) ? $this->filter['orWhere'] : null;
+            $params['whereNotIn'] = isset($this->filter['whereNotIn']) ? $this->filter['whereNotIn'] : null;
+            $params['like'] = isset($this->filter['like']) ? $this->filter['like'] : null;
+            $params['orLike'] = isset($this->filter['orLike']) ? $this->filter['orLike'] : null;
+            $params['group'] = isset($this->filter['group']) ? $this->filter['group'] : null;
 
             if ($this->request->get('length') != -1) {
                 $params['limit'] = array(
@@ -116,6 +121,11 @@ class Datatables
         $params = array(
             'join' => isset($filter['join']) ? $filter['join'] : null,
             'where' => isset($filter['where']) ? $filter['where'] : null,
+            'whereIn' => isset($filter['whereIn']) ? $filter['whereIn'] : null,
+            'orWhere' => isset($filter['orWhere']) ? $filter['orWhere'] : null,
+            'whereNotIn' => isset($filter['whereNotIn']) ? $filter['whereNotIn'] : null,
+            'like' => isset($filter['like']) ? $filter['like'] : null,
+            'orLike' => isset($filter['orLike']) ? $filter['orLike'] : null,
             'group' => isset($filter['group']) ? $filter['group'] : null,
             'order' => isset($filter['order']) ? $filter['order'] : null,
         );

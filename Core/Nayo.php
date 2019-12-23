@@ -14,7 +14,8 @@ class Nayo{
     }
 
     public static function run($argv){
-
+        error_reporting(E_ALL); 
+        ini_set('display_errors', 1);
         self::$instance = new self;
 
         if(empty($argv)){
@@ -121,12 +122,12 @@ class Nayo{
         self::checkAppKey();
        
         // Start session
-        session_start();
+        // session_start();
     }
 
     private  function autoload() {
         spl_autoload_register(function ($class_name) {
-            include_once(ROOT . $class_name . '.php');
+            include_once(ROOT . str_replace("\\", "/", $class_name) . '.php');
         });
     }
 

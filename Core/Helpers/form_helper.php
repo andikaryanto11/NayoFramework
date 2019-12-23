@@ -81,15 +81,17 @@ function formSelect($datas, $value, $name, $props = array())
     $inputProp = "";
     if (!empty($props)) {
         foreach ($props as $key => $val) {
-            if ($val)
-                $inputProp .= $key . " = '{$val}'";
-            else
-                $inputProp .= " " . $key . " ";
+            if($key != 'value')
+                if ($val)
+                    $inputProp .= $key . " = '{$val}'";
+                else
+                    $inputProp .= " " . $key . " ";
         }
     }
 
 
     $select = "<select {$inputProp}>";
+    $selected = "";
     $option = "";
 
     // if (is_array($datas)) {
@@ -98,7 +100,11 @@ function formSelect($datas, $value, $name, $props = array())
     // } else {
 
     foreach ($datas as $data)
-        $option .= "<option value = {$data->$value}>{$data->$name} </option> ";
+        if(isset($props['value']))
+            if($props['value'] == $data->$value)
+                $option .= "<option value = {$data->$value} selected>{$data->$name} </option> ";
+        else 
+            $option .= "<option value = {$data->$value}>{$data->$name} </option> ";
     // }
 
     $select .= $option . "</select>";

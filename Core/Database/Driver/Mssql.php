@@ -27,7 +27,7 @@ class Mssql implements IDbDriver{
             $this->currentdb = Connection::$dbname;
         } 
     }
-
+    
     public static function getInstance(){
         if(!self::$instance)
             self::$instance = new static;

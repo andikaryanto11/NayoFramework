@@ -15,7 +15,7 @@ class Loader{
 
         foreach($libs as $key => $lib){
             foreach($lib as $file)
-                require ucfirst("$key\\$file.php");
+                require ucfirst("$key/$file.php");
         }
 
     }

@@ -9,9 +9,10 @@ class Curl {
     private $result = false;
     private $body = false;
 
-    public function __construct()
+    public function __construct($url)
     {
-        $this->ch = curl_init();
+        ob_start(); 
+        $this->ch = curl_init($url);
         
         curl_setopt($this->ch, CURLOPT_HEADER, false);
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
@@ -30,7 +31,7 @@ class Curl {
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "POST");
                 curl_setopt($this->ch, CURLOPT_POST , true);
             case "PUT":
-                curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "POST");
+                curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "PUT");
             case "DELETE":
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "DELETE");
             case "GET":

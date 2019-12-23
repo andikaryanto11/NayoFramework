@@ -7,16 +7,18 @@ class Nayo_Exception extends Exception{
     public $messages;
     public $data;
     public $status;
+    public $redirectto ;
 
-    public function __construct($messages, $data = array(), $status = array()){
+    public function __construct($messages, $data = array(), $status = array(), $redirectto = null){
         parent::__construct();
         $this->messages = $messages;
         $this->data = $data;
         $this->status = $status;
+        $this->redirectto = $redirectto;
     }
 
-    public static function throw($messages, $data = array(), $status = array()){
-        throw new Nayo_Exception($messages, $data, $status);
+    public static function throw($messages, $data = array(), $status = array(), $redirectto = null){
+        throw new Nayo_Exception($messages, $data, $status, $redirectto);
     }
 
     public static function errorHandler($level, $messages, $file, $line)

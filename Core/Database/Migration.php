@@ -14,7 +14,7 @@ class Migration {
     protected $countMigrated = 0;
     public function __construct(){
 
-        include APP_PATH."Config\Config.php";
+        include APP_PATH."Config/Config.php";
 
         $this->enable_auto_migration = $config['enable_auto_migration'];
 
@@ -79,7 +79,7 @@ class Migration {
 
         if(!in_array(explode("_",$version)[1], $this->version)) {
             $dbversion = explode("_",$version);
-            include "App\\Database\\Migrations\\{$version}.php";
+            include APP_PATH."Database/Migrations/{$version}.php";
 
             $path =  "App\\Database\\Migrations\\{$version}";
             $migration = new $path;

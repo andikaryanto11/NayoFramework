@@ -62,7 +62,7 @@ class DBResults {
      * @param string $append string query to append 
      * @return array array object
      */
-    public function getAllData(string $append = ""){
+    public function getAllData($append = ""){
         // echo $append;
         $query = $this->db->getAll($this->sql." ".$append); 
         foreach($query as $row) {

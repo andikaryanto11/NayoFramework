@@ -1,7 +1,6 @@
 <?php 
 namespace Core\Database\Driver;
 
-use Core\Database\Databases;
 use Core\Database\Connection;
 use Core\Interfaces\IDbDriver;
 
@@ -81,7 +80,7 @@ class Mysqli implements IDbDriver{
      * @return array
      * 
      */
-    public function query($sql, $loging = true){        
+    public function query($sql, $loging = false){        
 
         $this->sql = $sql;
         // Write SQL statement into log
