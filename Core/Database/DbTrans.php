@@ -12,16 +12,12 @@ class DbTrans {
         Connection::init();
         
         if(!$this->db){
-            // $drivertype = !empty(Connection::getDriverType()) ? Connection::getDriverType()."\\" : "Driver\\";
-            // $ent = "Core\\Database\\".$drivertype.Connection::drivers()[Connection::getDriverClass()];
-            // echo $ent;
             $this->db = Connection::getDriver();
-            // echo Connection::drivers()[Connection::getDriverClass()];
         }
         
     }
 
-    public static function getInstance(){
+    private static function getInstance(){
         if(!self::$instance)    
             self::$instance = new static;
         
@@ -35,16 +31,27 @@ class DbTrans {
         
     }
 
-    public function rollback(){
+    public static function rollback(){
         
         self::$instance = self::getInstance();
         self::$instance->db->rollback();
     }
 
-    public function commit(){
+    public static function commit(){
         
         self::$instance = self::getInstance();
         self::$instance->db->commit();
         // self::$instance->db->close();
+    }
+
+    public static function getCurrentError(){
+
+        self::$instance = self::getInstance();
+        return self::$instance->db->error();
+    }
+
+    public static function getCurrentErrorNumber(){
+        self::$instance = self::getInstance();
+        return self::$instance->db->errno();
     }
 }

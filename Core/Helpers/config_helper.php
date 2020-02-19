@@ -1,5 +1,8 @@
 <?php
 
+use Core\System\Config;
+
 function appKey_config(){
-    return $GLOBALS['config']['app_key'];
+    $config = Config::AppConfig();
+    return $config['app_key'];
 }

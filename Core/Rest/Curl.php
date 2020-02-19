@@ -4,7 +4,7 @@ namespace Core\Rest;
 class Curl {
 
     private $url = "";
-    private $header = array();
+    private $header = [];
     private $ch = false;
     private $result = false;
     private $body = false;
@@ -30,14 +30,19 @@ class Curl {
             case "POST":
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "POST");
                 curl_setopt($this->ch, CURLOPT_POST , true);
+                break;
             case "PUT":
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "PUT");
+                break;
             case "DELETE":
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "DELETE");
+                break;
             case "GET":
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "GET");
+                break;
             default:
                 curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST , "GET");
+                break;
 
         }
 
@@ -56,7 +61,8 @@ class Curl {
     }
 
     public function addHeader($key, $value){
-        $this->header[$key] = $value;
+        $this->header[] = $key . ":" .$value;
+        // echo json_encode( $this->header);
         return $this;
     }
 
@@ -67,18 +73,18 @@ class Curl {
     }
 
     public function exec(){
+        // echo json_encode($this->header);
         curl_setopt(
             $this->ch,  
             CURLOPT_HTTPHEADER,
             $this->header
         );
-
         $this->result = curl_exec($this->ch);
         return $this->result;
     }
 
     public function getError(){
-        return curl_errno($this->ch);
+        return curl_error($this->ch);
     }
 
     public function close(){

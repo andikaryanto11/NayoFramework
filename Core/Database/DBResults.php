@@ -108,7 +108,12 @@ class DBResults {
             $value_list = array();  //value list string
 
             foreach($object as $key => $value){
-                if(isset($value)){
+                if(is_bool($value)){
+                    $field_list[] = "{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark, false);
+                    $value_list[] = $value == true ? 1 : 0;
+                }
+
+                if(!empty($value) ){
                     $field_list[] = "{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark, false);
                     $value_list[] = "'".escapeString($value)."'";
                 }
@@ -139,10 +144,16 @@ class DBResults {
         $list = array();
         foreach($object as $key => $value){
             if($key != "Id")
-                if(isset($value)){
-                        $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " '".escapeString($value)."'";
+                if(!empty($value)){
+                    $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " '".escapeString($value)."'";
                 } else {
+                    if(is_bool($value)){
+                        $newval = $value == true ? 1 : 0;
+                        $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " {$newval}";
+                    } else {
+
                     $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " NULL";
+                    }
                 }
                 
         }

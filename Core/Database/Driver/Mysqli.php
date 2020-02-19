@@ -3,6 +3,7 @@ namespace Core\Database\Driver;
 
 use Core\Database\Connection;
 use Core\Interfaces\IDbDriver;
+use Core\System\Config;
 
 class Mysqli implements IDbDriver{
 
@@ -80,12 +81,12 @@ class Mysqli implements IDbDriver{
      * @return array
      * 
      */
-    public function query($sql, $loging = false){        
+    public function query($sql){        
 
         $this->sql = $sql;
         // Write SQL statement into log
-
-        if($loging){
+        $config = Config::AppConfig();
+        if($config['sql_logging']){
             $str = $sql . "  [". date("Y-m-d H:i:s") ."]" . PHP_EOL;
     
             file_put_contents("log.txt", $str, FILE_APPEND);
@@ -110,9 +111,10 @@ class Mysqli implements IDbDriver{
 
     public function multiQuery($sql, $loging = true)
     {
-        if($loging){
+        $config = Config::AppConfig();
+
+        if($config['sql_logging']){
             $str = $sql . "  [". date("Y-m-d H:i:s") ."]" . PHP_EOL;
-    
             file_put_contents("log.txt", $str, FILE_APPEND);
         }
 

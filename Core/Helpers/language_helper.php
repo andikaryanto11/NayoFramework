@@ -1,14 +1,13 @@
 <?php
 
+use Core\System\Config;
+
 function lang($params = ''){
     
-    require CONFIG_PATH . "Config.php";
+    $config = Config::AppConfig();
     
     $language = $config['language'];
     
-    if(isset(app()->language))
-        $language = app()->language;
-
     $param = explode(".", $params);
 
     require APP_LANGUAGE_PATH.$language."/".$param[0].".php";

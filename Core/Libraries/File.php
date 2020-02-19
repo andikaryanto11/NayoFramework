@@ -90,4 +90,5 @@ class File
         array_push($this->filetype, $fileType);
         return $this;
     }
+    
 }

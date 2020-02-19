@@ -6,6 +6,7 @@ use Core\Database\DBResults;
 use Core\Database\Connection;
 use Core\Session;
 use Core\Libraries\Clslist;
+use Core\System\Config;
 use Exception;
 
 class Nayo_Model
@@ -69,14 +70,25 @@ class Nayo_Model
         return $db_result->count($this->append);
     }
 
-    public static function getAll($filter = array(), $htmlspeciachars = true)
+    public static function getAll($filter = array())
     {
         $instance = new static;
-        return $instance->findAll($filter, $htmlspeciachars);
+        return $instance->findAll($filter);
     }
 
-    public function findAll($filter = array(), $htmlspeciachars = true)
+    public static function getAllOrFail($filter = array())
     {
+        $instance = new static;
+        $result = $instance->findAll($filter);
+        if(is_null($result)){
+            Nayo_Exception::throw("Data Not Found", null);
+        }
+    }
+
+    public function findAll($filter = array())
+    {
+
+        $htmlspeciachars = Config::AppConfig()['xss_security'];
 
         $this->appendCondition($filter);
 
@@ -100,31 +112,67 @@ class Nayo_Model
         // return $this->re;
     }
 
-    public static function getOne($filter = array(), $htmlspeciachars = true)
+    public static function getOne($filter = array())
     {
         $instance = new static;
-        return $instance->findOne($filter, $htmlspeciachars);
+        return $instance->findOne($filter);
     }
 
-    public function findOne($filter = array(), $htmlspeciachars = true)
+    public static function getOneOrNew($filter = array()){
+        $instance = new static;
+        return $instance->findOne($filter, true);
+    }
+
+    public static function getOneOrFail($filter = array()){
+        $instance = new static;
+        $result = $instance->findOne($filter);
+
+        if(is_null($result)){
+            Nayo_Exception::throw("Data Not Found", null);
+        }
+    }
+
+    public function findOne($filter = array(), $withNewObject = false)
     {
-        $result = $this->findAll($filter, $htmlspeciachars);
+        $result = $this->findAll($filter);
         if (count($result) > 0)
             return $result[0];
+
+        if($withNewObject)
+            return $this;
+
         return null;
     }
 
-    public static function get($id, $htmlspeciachars = true)
+    public static function get($id)
     {
         $instance = new static;
-        return $instance->find($id, $htmlspeciachars);
+        return $instance->find($id);
     }
 
-    public function find($id,  $htmlspeciachars = true)
+    public static function getOrNew($id)
+    {
+        $instance = new static;
+        return $instance->find($id, true);
+    }
+
+    public static function getOrFail($id)
+    {
+        $instance = new static;
+        $result = $instance->find($id);
+
+        if(is_null($result)){
+            Nayo_Exception::throw("Data Not Found", null);
+        }
+    }
+
+    public function find($id, $withNewObject = false)
     {
 
+        $htmlspeciachars = Config::AppConfig()['xss_security'];
+
         $db_result = new DBResults($this->table);
-        // $result = $this->db_result->getById($id);
+        
         $result = $db_result->getById($id);
         if ($result) {
 
@@ -133,7 +181,10 @@ class Nayo_Model
                 $object->$key = $htmlspeciachars == true ? htmlspecialchars($row) : $row ;
             }
             return $object;
-        }
+        } 
+        if($withNewObject)
+            return $this;
+
         return null;
     }
 
@@ -211,12 +262,26 @@ class Nayo_Model
         return $newId;
     }
 
+    public static function getOneAndRemove($id){
+
+        $instance = new static;
+        $result = $instance->find($id);
+        if($instance->delete());
+            return $result;
+        return false;
+    }
+
+    public static function remove($id){
+        $instance = new static;
+        $result = $instance->find($id);
+        return $result->delete();
+
+    }
+
     public function delete()
     {
         $db_result = new DBResults($this->table);
-        // return $this->db_result->delete($this->Id);
         return $db_result->delete($this->Id);
-        // return $this;
     }
 
     private function join($join){
@@ -253,14 +318,24 @@ class Nayo_Model
 
         $wheres = array();
         foreach ($where as $k => $v) {
-            if (!empty($v)) {
-                if($v != 'null'){
-                    $newVal = escapeString($v);
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                } else {
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+            if(is_bool($v)){
+                $newVal = $v == true ? 1 : 0;
+                array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
+                array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
+            }
+            else {
+                if (!empty($v)) {
+                    if($v == 'null'){
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                    } else if ($v == 'not null'){
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                    } else {
+                        $newVal = escapeString($v);
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
+                    }
                 }
             }
         }
@@ -312,13 +387,16 @@ class Nayo_Model
 
         foreach ($orwhere as $k => $v) {
             if (!empty($v)) {
-                if($v != 'null'){
-                    $newVal = escapeString($v);
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'"); 
-                } else {
+                if($v == 'null'){
                     array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
                     array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                } else if ($v == 'not null'){
+                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                } else {
+                    $newVal = escapeString($v);
+                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
+                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
                 }
             }
         }
@@ -500,26 +578,31 @@ class Nayo_Model
 
         $this->connection();
 
+        $beginstartgroup = false;
         $qry = "";
         if (isset($group['where']) && !empty($group['where'])) {
             $where = $group['where'];
-
+            $startgroup = $beginstartgroup == false ? "( " : "";
             if (count($this->where) == 0)
-                $qry = " WHERE ";
+                $qry = " WHERE " . $startgroup;
             else
-                $qry = " AND ";
+                $qry = " AND " . $startgroup;
 
+            $beginstartgroup = true;
             $wheres = array();
 
             foreach ($where as $k => $v) {
                 if (!empty($v)) {
-                    if($v != 'null'){
+                    if($v == 'null'){
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                    } else if ($v == 'not null'){
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                    } else {
                         $newVal = escapeString($v);
                         array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
                         array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    } else {
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
                     }
                 }
             }
@@ -530,39 +613,49 @@ class Nayo_Model
 
         }
 
-        if (isset($group['orwhere']) && !empty($group['orwhere'])) {
-            $orwhere = $group['orwhere'];
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " OR ";
+        if (isset($group['orWhere']) && !empty($group['orWhere'])) {
+            
 
+            $orwhere = $group['orWhere'];
+            $startgroup = $beginstartgroup == false ? "( " : "";
+            if (count($this->where) == 0)
+                $qry = " WHERE ". $startgroup;
+            else
+                $qry = " OR ". $startgroup;
+
+            $beginstartgroup = true;
             $wheres = array();
 
             foreach ($orwhere as $k => $v) {
                 if (!empty($v)) {
-                    if($v != 'null'){
+                    if($v == 'null'){
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
+                    } else if ($v == 'not null'){
+                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
+                    } else {
                         $newVal = escapeString($v);
                         array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
                         array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    } else {
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
                     }
                 }
             }
 
             if (!empty($wheres))
-                $this->append .= $qry . " ( " . implode(" OR ", $wheres) . " ) ";
+                $this->append .= $qry . implode(" OR ", $wheres) ;
         }
 
-        if (isset($group['orlike']) && !empty($group['orlike'])) {
-            $orlike = $group['orlike'];
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " AND ";
+        if (isset($group['orLike']) && !empty($group['orLike'])) {
+            $orlike = $group['orLike'];
 
+            $startgroup = $beginstartgroup == false ? "( " : "";
+            if (count($this->where) == 0)
+                $qry = " WHERE ". $startgroup;
+            else
+                $qry = " AND ". $startgroup;
+
+            $beginstartgroup = true;
             $wheres = array();
 
             if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
@@ -603,11 +696,14 @@ class Nayo_Model
 
         if (isset($group['like']) && !empty($group['like'])) {
             $like = $group['like'];
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " AND ";
 
+            $startgroup = $beginstartgroup == false ? "( " : "";
+            if (count($this->where) == 0)
+                $qry = " WHERE ". $startgroup ;
+            else
+                $qry = " AND ". $startgroup;
+
+            $beginstartgroup = true;
             $wheres = array();
 
             if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
@@ -646,6 +742,8 @@ class Nayo_Model
             $this->append .= $qry . " ( " . implode(" AND ", $wheres) . " ) ";
         }
 
+        $this->append = " {$this->append} )";
+
         return $this;
     }
 
@@ -659,7 +757,7 @@ class Nayo_Model
             $field = substr($name, 4) . '_Id'. $sufixColumn;
             $entityobject = $entity;
             if (!empty($this->$field)) {
-                $result = $entityobject::get($this->$field);
+                $result = $entityobject::getOrNew($this->$field);
                 return $result;
             } else {
                 return new $entityobject;
@@ -701,11 +799,8 @@ class Nayo_Model
                         $field => $this->Id
                     ];
                 }
-                $result = $entityobject::getOne($params, true);
-                if($result)
-                    return $result;
-                else 
-                    return new $entityobject;
+                $result = $entityobject::getOneOrNew($params);
+                return $result;
             }
 
             return new $entityobject;

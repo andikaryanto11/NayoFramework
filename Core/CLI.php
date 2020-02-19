@@ -8,7 +8,7 @@ use Core\Database\DBResults;
 
 class CLI {
 
-    public function help(){
+    public static function help(){
         $result = "The following are the available command line interface commands\n\n";
         $result .= "php index.php tools migration                       Create new migration file\n";
         $result .= "php index.php tools migrate                         Run all migrations.\n";
@@ -18,17 +18,17 @@ class CLI {
         echo $result . PHP_EOL;
     }
 
-    public function model($modelname){
+    public static function model($modelname){
         $self = new self;
         $self->makeModelFile($modelname);
     }
 
-    public function controller($filename){
+    public static function controller($filename){
         $self = new self;
         $self->makeControllerFile($filename);
     }
 
-    public function seeder(){
+    public static function seeder(){
 
         $filename = date('YmdHis');
         $path = APP_PATH . "Database/Seeds/seed_$filename.php";
@@ -54,13 +54,13 @@ class seed_$filename {
         echo "$path seed has successfully been created." . PHP_EOL;
     }
     
-    public function seed(){
+    public static function seed(){
         $seed = new Seed();
         
         $seed->seedAll();
     }
 
-    public function migration(){
+    public static function migration(){
         $filename = date('YmdHis');
         $path = APP_PATH . "Database/Migrations/migration_$filename.php";
 
@@ -85,7 +85,7 @@ class migration_$filename {
         echo "$path migration has successfully been created." . PHP_EOL;
     }
 
-    public function migrate(){
+    public static function migrate(){
         $migration = new Migration();
         
         $migration->migrateAll();
@@ -157,7 +157,7 @@ $property
         echo "$path model has successfully been created." . PHP_EOL;
     }
 
-    private function readTableColumn($tablename){
+    private static function readTableColumn($tablename){
         $db = new DBResults($tablename);
 
         return $db->fields;

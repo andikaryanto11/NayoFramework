@@ -16,6 +16,7 @@ class Nayo_Controller{
 
         if(!$this->request)
             $this->request = Request::getInstance();
+        
         // if(!$this->session)
         //     $this->session = Session::getInstance();
 
@@ -42,10 +43,15 @@ class Nayo_Controller{
         }
     }
 
-    public function view(string $url = "", $datas = array(), $clearData = true){
-        // echo $url;
+    public function view(string $url = "", $datas = array(), $asText = false, $clearData = true){
         extract($datas) ;
-        // Session::unset('data');
+        if($asText){
+            ob_start();
+            include(APP_PATH."Views/".$url.".php");
+            $return = ob_get_clean();
+            return $return;
+        }
+            
         include(APP_PATH."Views/".$url.".php");
         if($clearData)
             $this->clearData();
@@ -56,8 +62,14 @@ class Nayo_Controller{
         Session::unset('data');
     }
 
-    public function blade($path, $datas = array(), $clearData = true){
-
+    public function blade($path, $datas = array(), $asText = false, $clearData = true){
+        if($asText){
+            extract($datas) ;
+            ob_start();
+            include(APP_PATH."Views/".str_replace(".", "/", $path).".php");
+            $return = ob_get_clean();
+            return $data;
+        }
         $this->blade = new BladeOne(APP_PATH."Views/", APP_CACHE, BladeOne::MODE_AUTO);
         $this->bladeInclude();
         echo $this->blade->run($path, $datas);

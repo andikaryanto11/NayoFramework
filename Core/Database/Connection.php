@@ -1,7 +1,9 @@
 <?php
 namespace Core\Database;
 
-class Connection {
+use Core\System\Config;
+
+class       Connection {
 
     public static $host;
     public static $user;
@@ -39,10 +41,11 @@ class Connection {
      */
 
     public static function init(){
-        require APP_PATH . "Config/Database.php";
+        // require APP_PATH . "Config/Database.php";
+        $db = Config::AppDatabase();
 
         
-        $connectionString = isset($db['default']['dbname'])? $db['default']['connectionstring'] : '';
+        self::$connectionString = isset($db['default']['dbname'])? $db['default']['connectionstring'] : '';
 
         self::$host = isset($db['default']['host'])? $db['default']['host'] : 'localhost';
 
@@ -52,7 +55,7 @@ class Connection {
 
         self::$dbname = isset($db['default']['dbname'])? $db['default']['dbname'] : '';
 
-        self::$driver = isset($db['default']['dbname'])? $db['default']['driver'] : '';
+        self::$driver = isset($db['default']['driver'])? $db['default']['driver'] : '';
 
         self::$port = isset($db['default']['port'])? $db['default']['port'] : '3306';
 
@@ -60,13 +63,13 @@ class Connection {
 
         self::$engine = isset($db['default']['engine'])? $db['default']['engine'] : '';
 
-        if(!self::$connectionString) {
-            self::$connectionString = $connectionString;
-        }
+        // if(!self::$connectionString) {
+        //     self::$connectionString = $connectionString;
+        // }
 
-        if(!self::$driver) {
-            self::$driver = $driver;
-        }
+        // if(!self::$driver) {
+        //     self::$driver = $driver;
+        // }
         
     }
 

@@ -122,7 +122,7 @@ class Nayo{
         self::checkAppKey();
        
         // Start session
-        // session_start();
+        session_start();
     }
 
     private  function autoload() {

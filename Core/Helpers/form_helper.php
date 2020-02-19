@@ -12,7 +12,12 @@ function formOpen($action = "", $props = array(), $method = "POST")
         }
     }
 
-    $form = "<form method = '{$method}' action='{$action}' {$property}> ";
+    $act="";
+    if(!empty($action)){
+        $act = "action='{$action}'";
+    }
+    
+    $form = "<form method = '{$method}' {$act} {$property}> ";
     if ($GLOBALS['config']['csrf_security']) {
         $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
     }
@@ -28,8 +33,13 @@ function formOpenMultipart($action = "", $props = array(), $method = "POST")
             $property .= "{$key} = '{$prop}'";
         }
     }
+    
+    $act="";
+    if(!empty($action)){
+        $act = "action='{$action}'";
+    }
 
-    $form = "<form method = '{$method}' action='{$action}' {$property}  enctype='multipart/form-data'> ";
+    $form = "<form method = '{$method}' {$act} {$property}  enctype='multipart/form-data'> ";
     if ($GLOBALS['config']['csrf_security']) {
         $form .= "<input hidden name='{$_SESSION['csrfName']}' value = '{$_SESSION['csrfToken']}'>";
     }
@@ -47,6 +57,7 @@ function formInput($props = array())
     $inputProp = "";
     $sesdata = null;
     $datavalue = null;
+    $checked = "";
     if (\Core\Session::get('data')) {
         $sesdata = \Core\Session::get('data');
     }
@@ -58,9 +69,18 @@ function formInput($props = array())
             }
         }
 
+        if (key_exists('type', $props)){
+            if($props['type'] == "checkbox"){
+                if(isset($props['value'])){
+                    $checked = "checked=''";
+                }
+            }
+        }
+
         foreach ($props as $key => $val) {
             $newvalue = null;
             if ($key == "value" && !is_null($datavalue)) {
+               
                 $newvalue = htmlspecialchars($datavalue, ENT_QUOTES);
             } else {
                 $newvalue = htmlspecialchars($val, ENT_QUOTES);
@@ -73,7 +93,7 @@ function formInput($props = array())
         }
     }
 
-    return "<input {$inputProp}> ";
+    return "<input $checked {$inputProp}> ";
 }
 
 function formSelect($datas, $value, $name, $props = array())
@@ -98,11 +118,16 @@ function formSelect($datas, $value, $name, $props = array())
     //     foreach ($datas as $data)
     //         $option .= "<option value = {$data[$value]}>{$data[$name]} </option> ";
     // } else {
-
+    
     foreach ($datas as $data)
-        if(isset($props['value']))
-            if($props['value'] == $data->$value)
+        if(isset($props['value'])){
+            if($props['value'] == $data->$value){
+
                 $option .= "<option value = {$data->$value} selected>{$data->$name} </option> ";
+            }
+            else 
+                $option .= "<option value = {$data->$value}>{$data->$name} </option> ";
+        }
         else 
             $option .= "<option value = {$data->$value}>{$data->$name} </option> ";
     // }
