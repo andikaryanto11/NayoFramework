@@ -18,7 +18,7 @@ class Request {
     /**
      * @param string $var 
      */
-    public static function post(string $var){
+    public function post(string $var){
         if(isset($_POST[$var]))
             return $_POST[$var];
         return null;
@@ -27,7 +27,7 @@ class Request {
     /**
      * @param string $var 
      */
-    public static function get(string $var){
+    public function get(string $var){
         if(isset($_GET[$var]))
             return $_GET[$var];
         return null;
@@ -36,7 +36,7 @@ class Request {
     /**
      * 
      */
-    public static function body(){
+    public function body(){
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return $_POST;
        } else {
@@ -44,17 +44,17 @@ class Request {
        }
     }
 
-    public static function files($name){
+    public function files($name){
         if(isset($_FILES[$name]))
             return $_FILES[$name];
         return null;
     }
 
-    public static function type(){
+    public function type(){
         return $_SERVER['REQUEST_METHOD'];
     }
 
-    public static function request(){
+    public function request(){
         return $_SERVER;
     }
 }

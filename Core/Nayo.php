@@ -31,7 +31,8 @@ class Nayo{
             
         } else {
 
-            self::$instance->define();
+            self::define();
+            self::$instance->loadConfig();
             self::$instance->autoload();
             self::$instance->autoloadfile();
 
@@ -58,12 +59,12 @@ class Nayo{
         
     }
 
-    public  function init(){
-        // Define path constants
-        self::$instance->define();        
+    public function init(){
+        self::define();  
+        self::$instance->loadConfig();      
     }
 
-    public  function define(){
+    public static function define(){
 
         define("DS", DIRECTORY_SEPARATOR);
 
@@ -112,7 +113,10 @@ class Nayo{
         define("CORE_BLADE", CORE_PATH . "Blade" . DS);
 
         define("BLADE_CACHE", CORE_BLADE . "Cache");
+   
+    }
 
+    private function loadConfig(){
         require BASE_PATH.'vendor/autoload.php';
 
         // load config

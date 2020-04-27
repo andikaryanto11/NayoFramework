@@ -3,19 +3,11 @@ namespace Core\Rest;
 
 class Response {
 
-    private static $instance = false;
-    private function __construct()
+    public function __construct()
     {
         
         header("Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Content-Type, Accept");
         header('Content-Type: application/json');
-    }
-
-    public static function getInstance(){
-        if(!self::$instance)
-            self::$instance = new static;
-    
-        return self::$instance;
     }
 
     /**
@@ -45,8 +37,7 @@ class Response {
      */
     private $_statusCode = 200;
 
-    public static function getHeader($header = null){
-        static::getInstance();
+    public function getHeader($header = null){
         $headers = apache_request_headers();
         if($header){
             if(isset($headers[$header]))
@@ -58,8 +49,7 @@ class Response {
 
     }
 
-    public static function json($data, $statusCode = null){
-        static::getInstance();
+    public function json($data, $statusCode = null){
         if($statusCode)
             http_response_code($statusCode);
 
