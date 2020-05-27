@@ -16,6 +16,7 @@ class Nayo{
     public static function run($argv){
         error_reporting(E_ALL); 
         ini_set('display_errors', 1);
+        
         self::$instance = new self;
 
         if(empty($argv)){
@@ -31,8 +32,7 @@ class Nayo{
             
         } else {
 
-            self::define();
-            self::$instance->loadConfig();
+            self::$instance->define();
             self::$instance->autoload();
             self::$instance->autoloadfile();
 
@@ -59,12 +59,12 @@ class Nayo{
         
     }
 
-    public function init(){
-        self::define();  
-        self::$instance->loadConfig();      
+    public  function init(){
+        // Define path constants
+        self::$instance->define();        
     }
 
-    public static function define(){
+    public  function define(){
 
         define("DS", DIRECTORY_SEPARATOR);
 
@@ -113,10 +113,7 @@ class Nayo{
         define("CORE_BLADE", CORE_PATH . "Blade" . DS);
 
         define("BLADE_CACHE", CORE_BLADE . "Cache");
-   
-    }
 
-    private function loadConfig(){
         require BASE_PATH.'vendor/autoload.php';
 
         // load config
@@ -139,7 +136,7 @@ class Nayo{
         require CONFIG_PATH . "Autoload.php";
         
         $loader = new Loader();
-        $loader->coreHelper(array('config','url', 'language', 'helper', 'inflector', 'string', 'file', 'currency', 'form'));
+        $loader->coreHelper(array('entity', 'config','url', 'language', 'helper', 'inflector', 'string', 'file', 'currency', 'form'));
         $loader->appHelper($autoload['helper']);
         $loader->appClasses($autoload['classes']);
     }

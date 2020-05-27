@@ -49,9 +49,9 @@ class File
             $nameex = $date->format("Ymd_His");
         }
 
-        if (move_uploaded_file($files['tmp_name'], ROOT . DS . $this->destination . DS . $nameex . str_replace(" ","-",$files['name']))) {
+        if (move_uploaded_file($files['tmp_name'], ROOT . DS . $this->destination . DS . $nameex . $files['name'])) {
 
-            $this->urlfile = $this->destination . "/" . $nameex . str_replace(" ","-",$files['name']);
+            $this->urlfile = $this->destination . "/" . $nameex . $files['name'];
             return true;
         }
 

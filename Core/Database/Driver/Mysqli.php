@@ -50,11 +50,11 @@ class Mysqli implements IDbDriver{
         $sql = "DESC ". $table;
         $this->query($sql, false);
         $result = $this->fetch();
-        $pk;
         if($result){
             foreach ($result as $v) {
 
                 $fields['column'] = $v['Field'];
+                $fields['type'] = $v['Type'];
 
                 if ($v['Key'] == 'PRI') {
                     $fields['primary'] = true;
@@ -63,7 +63,7 @@ class Mysqli implements IDbDriver{
                 } else 
                     $fields['primary'] = false;
                     
-                $this->fields[] = $fields;
+                $this->fields[$v['Field']] = $fields;
 
             }
         }
@@ -71,6 +71,8 @@ class Mysqli implements IDbDriver{
 
         return $this->fields;
     }
+
+    
 
     public function pk(){
         return $this->pk;
@@ -135,7 +137,7 @@ class Mysqli implements IDbDriver{
 
         if (mysqli_multi_query($this->conn, $this->sql)){
             do{
-               if ($result=mysqli_store_result($this->conn)){
+               if ($result=mysqli_store_result($this->conn, 1)){
                   while ($row=mysqli_fetch_row($result)){
                      echo $row[0];
                   }

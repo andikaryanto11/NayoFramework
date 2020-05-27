@@ -68,7 +68,7 @@ class Nayo_Controller{
             ob_start();
             include(APP_PATH."Views/".str_replace(".", "/", $path).".php");
             $return = ob_get_clean();
-            return $return;
+            return $data;
         }
         $this->blade = new BladeOne(APP_PATH."Views/", APP_CACHE, BladeOne::MODE_AUTO);
         $this->bladeInclude();

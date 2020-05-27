@@ -44,7 +44,6 @@ class Mssql implements IDbDriver{
     {
         $sql = "DESC ". $table;
         $result = $this->getAll($sql);
-        $pk;
         if($result){
             foreach ($result as $v) {
 

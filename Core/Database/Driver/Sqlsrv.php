@@ -70,7 +70,6 @@ class Sqlsrv implements IDbDriver{
         $this->query($sql, false);
         // echo json_encode($result);
         $result = $this->fetch();
-        $pk;
         if($result){
             foreach ($result as $v) {
 

@@ -3,6 +3,7 @@ namespace Core\Database;
 
 use Core\Database\Database;
 use Core\Database\Connection;
+use Core\Database\Query;
 
 class DBResults {
 
@@ -14,10 +15,12 @@ class DBResults {
     public $fields = array();
     protected $columnOpenMark = "`";
     protected $columnCloseMark = "`";
+    protected $filter = [];
     
 
-    public function __construct($table = ""){
+    public function __construct($table = "", $filter = []){
         $this->table = $table;  
+        $this->filter = $filter;
 
         Connection::init();
         
@@ -34,9 +37,6 @@ class DBResults {
         if(!$this->db){
             $this->db = Connection::getDriver();
         }
-            
-        $this->sql = "select {$this->table}.* from ".$this->table;
-        // field collected
         
         if($this->table)
             $this->getFields();
@@ -50,7 +50,7 @@ class DBResults {
         $this->fields =  $this->db->getFields($this->table);
         return $this->fields;
     }
-
+    
     /**
      * @return array array of primary key field name of table
      */
@@ -62,15 +62,14 @@ class DBResults {
      * @param string $append string query to append 
      * @return array array object
      */
-    public function getAllData($append = ""){
-        // echo $append;
-        $query = $this->db->getAll($this->sql." ".$append); 
+    public function getAllData(){
+        $query = new Query();
+        $querysql = $query->selectFromtable($this->table, $this->filter);
+        $query = $this->db->getAll($querysql); 
         foreach($query as $row) {
             array_push($this->result, $row);
         }
         
-        // $this->db->close();
-
         return $this->result;
     }
 
@@ -83,14 +82,21 @@ class DBResults {
      * @return array object result
      */
     public function getById($id){
-        
-        $this->sql .= " where ".$this->pk()." = ".$id;
 
-        $query = $this->db->getOne($this->sql);
+
+        $query = new Query();
+        
+        $p = [
+            'where' => [
+                'Id' => $id
+            ]
+        ];
+
+        $sql = $query->selectFromtable($this->table, $p);
+        
+        $query = $this->db->getOne($sql);
 
         $this->result = $query;
-        
-        // $this->db->close();
 
         return $this->result;
     }
@@ -103,32 +109,16 @@ class DBResults {
 
     public function insert($object){
         
-            $field_list = array();  //field list string
+        $query = new Query();
+        $sql = $query->insertInto($this->table, $object);
+        $this->db->insert($sql);
+        if ($this->db->getStatement()) {
+            $newid = $this->db->getInsertId();
+            return $newid;
+        } else {
+            return false;
 
-            $value_list = array();  //value list string
-
-            foreach($object as $key => $value){
-                if(!empty($value)){
-                    $field_list[] = "{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark, false);
-                    $value_list[] = "'".escapeString($value)."'";
-                }
-                    
-            }
-
-            $lastid = "";
-
-            // echo $this->sql;
-            $this->sql = "INSERT INTO {$this->table} (".implode(",",$field_list).") VALUES(".implode(",",$value_list).")".$lastid;
-            $this->db->insert($this->sql);
-            if ($this->db->getStatement()) {
-                $newid = $this->db->getInsertId();
-                // $this->db->close();
-                return $newid;
-            } else {
-                // $this->db->close();
-                return false;
-
-            }
+        }
     }
 
     /**
@@ -136,24 +126,13 @@ class DBResults {
      * @return int|bool INT id of inserted data, BOOL if fail while insert data
      */
     public function update($object){
-        $list = array();
-        foreach($object as $key => $value){
-            if($key != "Id")
-                if(!empty($value)){
-                        $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " '".escapeString($value)."'";
-                } else {
-                    $list[] ="{$this->columnOpenMark}".columnValidate($key, $this->columnOpenMark, $this->columnCloseMark) . " NULL";
-                }
-                
-        }
-        // $pk = $this->pk();
-        $this->sql = "UPDATE {$this->table} SET ".implode(",",$list)." WHERE Id = ".$object->Id;
-        $this->db->query($this->sql);
+        
+        $query = new Query();
+        $sql = $query->update($this->table, $object);
+        $this->db->query($sql);
         if ($this->db->getStatement()) {
-            // $this->db->close();
             return $object->Id;
         } else {
-            // $this->db->close();
             return false;
         }
     }
@@ -165,17 +144,19 @@ class DBResults {
      */
     public function delete($id){
         
-        $this->sql = "DELETE FROM {$this->table} WHERE Id = ".$id;
-        $this->db->query($this->sql);
+        $query = new Query();
+        $sql = $query->delete($this->table, $id);
+        $this->db->query($sql);
         $res = $this->db->getStatement();
-        // $this->db->close();
         return $res;
         
     }
 
-    public function count($append){
+    public function count($filter = []){
 
-        $query = $this->db->getOne("SELECT COUNT(*) as Counted FROM {$this->table} $append"); 
+        $query = new Query();
+        $sql = $query->selectCount($this->table, $this->filter);
+        $query = $this->db->getOne($sql); 
         return $query['Counted'];
     }
 

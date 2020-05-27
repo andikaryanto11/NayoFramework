@@ -3,26 +3,14 @@
 namespace Core;
 
 use Core\Database\DBResults;
-use Core\Database\Connection;
-use Core\Session;
 use Core\Libraries\Clslist;
 use Core\System\Config;
-use Exception;
 
 class Nayo_Model
 {
     protected $db = false;
     protected $db_result = false;
-    // protected $table = false;
-    //filtering
-    protected $append = "";
-    protected $where = array();
-    protected $order = array();
-    protected $columnOpenMark = "`";
-    protected $columnCloseMark = "`";
-    protected $driverclass = "";
-
-    protected $connection = false;
+    private $type = "string";
 
     public function __construct()
     {
@@ -40,23 +28,6 @@ class Nayo_Model
     //         Nayo_Exception::exceptionHandler($ex);
     //     }
     // }
-
-    public function connection()
-    {
-
-        Connection::init();
-
-        $this->driverclass = Connection::getDriverClass();
-        // $this->driverclass = "mysqli";
-        if ($this->driverclass == "mysqli" || $this->driverclass == "mysql") {
-            $this->columnOpenMark = "`";
-            $this->columnCloseMark = "`";
-        } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
-            $this->columnOpenMark = "[";
-            $this->columnCloseMark = "]";
-        }
-    }
-
     public static function countAll($filter = array())
     {
         $instance = new static;
@@ -65,9 +36,8 @@ class Nayo_Model
 
     public function count($filter = array())
     {
-        $this->appendCondition($filter);
-        $db_result = new DBResults($this->table);
-        return $db_result->count($this->append);
+        $db_result = new DBResults($this->table, $filter);
+        return $db_result->count();
     }
 
     public static function getAll($filter = array())
@@ -76,25 +46,52 @@ class Nayo_Model
         return $instance->findAll($filter);
     }
 
+    public static function getAllOrFail($filter = array())
+    {
+        $instance = new static;
+        $result = $instance->findAll($filter);
+        if(is_null($result)){
+            Nayo_Exception::throw("Data Not Found", null);
+        }
+    }
+
     public function findAll($filter = array())
     {
 
         $htmlspeciachars = Config::AppConfig()['xss_security'];
 
-        $this->appendCondition($filter);
-
-        $db_result = new DBResults($this->table);
-
-        $results = $db_result->getAllData($this->append);
-        // echo $this->append;
-        $this->append = "";
+        $db_result = new DBResults($this->table, $filter);
+        $fields = $db_result->getFields();
+        $results = $db_result->getAllData();
 
         $clsList = new Clslist(new $this);
 
         foreach ($results as $result) {
             $object = new $this;
             foreach ($result as $key => $row) {
-                $object->$key = $htmlspeciachars == true ? htmlspecialchars($row) : $row ;
+                $type = "string";
+                if(array_key_exists($key, $fields)){
+                    $type = $fields[$key]['type'];
+                }
+
+
+                // if (preg_match("/^int/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (int)htmlspecialchars($row) : null) : (!empty($row) ? (int)$row : null) ;
+                // } else if (preg_match("/^tinyint/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (int)htmlspecialchars($row) : null) : (!empty($row) ? (int)$row : null) ;
+                // } else if (preg_match("/^decimal/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (float)htmlspecialchars($row) + 0.01 : null) : (!empty($row) ? (float)$row + 0.01 : null) ;
+                // } else if (preg_match("/^double/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (double)htmlspecialchars($row) : null) : (!empty($row) ? (double)$row : null) ;
+                // }else if(preg_match("/^smallint/", $type)){
+                //     if(substr($type, 8, 3) == "(1)"){
+                //         $object->$key = $htmlspeciachars == true ? (!empty($row) ? true : false) : (!empty($row) ? true : false) ;
+                //     } else {
+                //         $object->$key = $htmlspeciachars == true ? (!empty($row) ? (int)htmlspecialchars($row) : null) : (!empty($row) ? (int)$row : null) ;
+                //     }
+                // } else {
+                    $object->$key = $htmlspeciachars == true ? htmlspecialchars($row) : $row ;
+                // }
             }
             // array_push($this->results, $object);
             $clsList->add($object);
@@ -109,11 +106,29 @@ class Nayo_Model
         return $instance->findOne($filter);
     }
 
-    public function findOne($filter = array(), $htmlspeciachars = true)
+    public static function getOneOrNew($filter = array()){
+        $instance = new static;
+        return $instance->findOne($filter, true);
+    }
+
+    public static function getOneOrFail($filter = array()){
+        $instance = new static;
+        $result = $instance->findOne($filter);
+
+        if(is_null($result)){
+            Nayo_Exception::throw("Data Not Found", null);
+        }
+    }
+
+    public function findOne($filter = array(), $withNewObject = false)
     {
         $result = $this->findAll($filter);
         if (count($result) > 0)
             return $result[0];
+
+        if($withNewObject)
+            return $this;
+
         return null;
     }
 
@@ -123,70 +138,64 @@ class Nayo_Model
         return $instance->find($id);
     }
 
-    public function find($id)
+    public static function getOrNew($id)
+    {
+        $instance = new static;
+        return $instance->find($id, true);
+    }
+
+    public static function getOrFail($id)
+    {
+        $instance = new static;
+        $result = $instance->find($id);
+
+        if(is_null($result)){
+            Nayo_Exception::throw("Data Not Found", null);
+        }
+    }
+
+    public function find($id, $withNewObject = false)
     {
 
         $htmlspeciachars = Config::AppConfig()['xss_security'];
 
         $db_result = new DBResults($this->table);
-        
+        $fields = $db_result->getFields();
         $result = $db_result->getById($id);
         if ($result) {
 
             $object = new $this;
             foreach ($result as $key => $row) {
-                $object->$key = $htmlspeciachars == true ? htmlspecialchars($row) : $row ;
+                $type = "string";
+                if(array_key_exists($key, $fields)){
+                    // echo json_encode($fields[$key]);
+                    $type = $fields[$key]['type'];
+                }
+
+                // if (preg_match("/^int/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (int)htmlspecialchars($row) : null) : (!empty($row) ? (int)$row : null) ;
+                // } else if (preg_match("/^tinyint/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (int)htmlspecialchars($row) : null) : (!empty($row) ? (int)$row : null) ;
+                // } else if (preg_match("/^decimal/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (float)htmlspecialchars($row) + 0.01 : null) : (!empty($row) ? (float)$row  + 0.01  : null) ;
+                // } else if (preg_match("/^double/", $type)){
+                //     $object->$key = $htmlspeciachars == true ? (!empty($row) ? (double)htmlspecialchars($row) : null) : (!empty($row) ? (double)$row : null) ;
+                // }else if(preg_match("/^smallint/", $type)){
+                //     if(substr($type, 8, 3) == "(1)"){
+                //         $object->$key = $htmlspeciachars == true ? (!empty($row) ? true : false) : (!empty($row) ? true : false) ;
+                //     } else {
+                //         $object->$key = $htmlspeciachars == true ? (!empty($row) ? (int)htmlspecialchars($row) : null) : (!empty($row) ? (int)$row : null) ;
+                //     }
+                // } else {
+                    $object->$key = $htmlspeciachars == true ? htmlspecialchars($row) : $row ;
+                // }
             }
             return $object;
-        }
+        } 
+        if($withNewObject)
+            return $this;
+
         return null;
-    }
-
-    private function appendCondition($filter){
-
-        $join = (isset($filter['join']) ? $filter['join'] : FALSE);
-        $where = (isset($filter['where']) ? $filter['where'] : FALSE);
-        $wherein = (isset($filter['whereIn']) ? $filter['whereIn'] : FALSE);
-        $orwhere = (isset($filter['orWhere']) ? $filter['orWhere'] : FALSE);
-        $wherenotin = (isset($filter['whereNotIn']) ? $filter['whereNotIn'] : FALSE);
-        $like = (isset($filter['like']) ? $filter['like'] : FALSE);
-        $orlike = (isset($filter['orLike']) ? $filter['orLike'] : FALSE);
-        $order = (isset($filter['order']) ? $filter['order'] : FALSE);
-        $limit = (isset($filter['limit']) ? $filter['limit'] : FALSE);
-        $group = (isset($filter['group']) ? $filter['group'] : FALSE);
-
-        // echo json_encode($where);
-        if ($join)
-            $this->join($join);
-
-        if ($where)
-            $this->where($where);
-
-        if ($wherein)
-            $this->whereIn($wherein);
-
-        if ($wherenotin)
-            $this->whereNotIn($wherenotin);
-
-        if ($orwhere)
-            $this->orWhere($orwhere);
-
-        if ($like)
-            $this->like($like);
-
-        if ($orlike)
-            $this->orLike($orlike);
-
-        if ($group)
-            $this->group($group);
-
-        if ($order)
-            $this->orderBy($order);
-
-        if ($limit)
-            $this->limit($limit);
-
-        return $this;
     }
 
     //Overriding method
@@ -216,467 +225,39 @@ class Nayo_Model
         return $newId;
     }
 
+    public static function getOneAndRemove($id){
+
+        $instance = new static;
+        $result = $instance->find($id);
+        if($result->delete());
+            return $result;
+        return false;
+    }
+
+    public static function remove($id){
+        $instance = new static;
+        $result = $instance->find($id);
+        return $result->delete();
+
+    }
+
     public function delete()
     {
         $db_result = new DBResults($this->table);
-        // return $this->db_result->delete($this->Id);
         return $db_result->delete($this->Id);
-        // return $this;
     }
 
-    private function join($join){
-        $this->connection();
-        $qry = "";
-        $key = "";
-        foreach($join as $k => $d){
-            
-            foreach($d as $v){
-                $as = isset($v['as']) ? $v['as'] : $k;
-
-                if(isset($v['type'])){
-                    $qry .= strtoupper($v['type']). " JOIN ";
-                } else {
-                    $qry .= "INNER JOIN ";
-                }
-
-                $qry .= $this->columnOpenMark.columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false)." {$as} ON ".$this->columnOpenMark.columnValidate($as.".Id", $this->columnOpenMark, $this->columnCloseMark) .$this->columnOpenMark.columnValidate("{$v['table']}.{$v['column']}", $this->columnOpenMark, $this->columnCloseMark, false);
-            }
-        }
-        $this->append .= $qry;
-        return $this;
-
-    }
-
-    private function where($where)
-    {
-        $this->connection();
-        $qry = "";
-        if (count($this->where) == 0)
-            $qry = " WHERE ";
-        else
-            $qry = " AND ";
-
-        $wheres = array();
-        foreach ($where as $k => $v) {
-            if (!empty($v)) {
-                if($v == 'null'){
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                } else if ($v == 'not null'){
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                } else {
-                    $newVal = escapeString($v);
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                }
-            }
-        }
-
-        if (!empty($wheres))
-            $this->append .= $qry . implode(" AND ", $wheres);
-        // echo $this->append;
-        return $this;
-    }
-
-    private function whereIn($whereIn)
-    {
-        // echo $this->append;
-        $this->connection();
-        $qry = "";
-        if (count($this->where) == 0)
-            $qry = " WHERE ";
-        else
-            $qry = " AND ";
-
-        $wheres = array();
-        foreach ($whereIn as $k => $v) {
-            $arrVal = array();
-            if(!empty($v))
-                foreach ($v as $newVal) {
-                    if (!empty($newVal))
-                        $arrVal[] = "'" . escapeString($newVal) . "'";
-                }
-            if (!empty($arrVal)) {
-                array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IN (" . implode(",", $arrVal) . ")");
-                array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IN (" . implode(",", $arrVal) . ")");
-            }
-        }
-        if (!empty($wheres))
-            $this->append .= $qry . implode(" AND ", $wheres);
-        return $this;
-    }
-
-    private function orWhere($orwhere)
-    {
-        $this->connection();
-        $qry = "";
-        if (count($this->where) == 0)
-            $qry = " WHERE ";
-        else
-            $qry = " OR ";
-
-        $wheres = array();
-
-        foreach ($orwhere as $k => $v) {
-            if (!empty($v)) {
-                if($v == 'null'){
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                } else if ($v == 'not null'){
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                } else {
-                    $newVal = escapeString($v);
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                }
-            }
-        }
-
-        if (!empty($wheres))
-            $this->append .= $qry . implode(" OR ", $wheres);
-
-        return $this;
-    }
-
-    private function whereNotIn($whereNotIn)
-    {
-        $this->connection();
-
-        $qry = "";
-        if (count($this->where) == 0)
-            $qry = " WHERE ";
-        else
-            $qry = " AND ";
-
-        $wheres = array();
-        foreach ($whereNotIn as $k => $v) {
-            $arrVal = array();
-            if(!empty($v))
-                foreach ($v as $newVal) {
-                    if (!empty($newVal))
-                        $arrVal[] = "'" . escapeString($newVal) . "'";
-                }
-
-            if (!empty($arrVal)) {
-                array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " NOT IN (" . implode(",", $arrVal) . ")");
-                array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " NOT IN (" . implode(",", $arrVal) . ")");
-            }
-        }
-
-        if (!empty($wheres))
-            $this->append .= $qry . implode(" AND ", $wheres);
-        // echo $this->append;
-        return $this;
-    }
-
-    private function orderBy($order)
-    {
-        $qry = " ORDER BY ";
-
-        foreach ($order as $k => $v) {
-            array_push($this->order, "{$k} {$v}");
-        }
-
-        $this->append .= $qry . implode(" , ", $this->order);
-
-        return $this;
-    }
-
-    private function limit($limit)
-    {
-        $this->connection();
-        if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
-
-            if($limit['page'] && $limit['size']){
-                $qry = " LIMIT ";
-                $this->append .= $qry . ($limit['page'] - 1) . ", " . $limit['size'];
-            }
-        } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
-            $order = "";
-
-            if (empty($this->order)) {
-                $order = " ORDER BY Id ASC ";
-            }
-
-            $qry = " OFFSET ";
-
-            $this->append .= $order . $qry . ($limit['page'] - 1) . " ROWS FETCH NEXT {$limit['size']} ROWS ONLY";
-        }
-        return $this;
-    }
-
-    private function like($like)
-    {
-
-        $this->connection();
-
-        $qry = "";
-        if (count($this->where) == 0)
-            $qry = " WHERE ";
-        else
-            $qry = " AND ";
-
-        $wheres = array();
-
-        if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
-            foreach ($like as $k => $v) {
-                if (is_array($v)) {
-                    $arrVal = [];
-                    foreach ($v as $newV) {
-                        $arrVal[] = escapeString($newV);
-                    }
-                    $regVal = implode("|", $arrVal);
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                } else {
-
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                }
-            }
-        } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
-            foreach ($like as $k => $v) {
-                if (is_array($v)) {
-                    $arrVal = [];
-                    foreach ($v as $newV) {
-
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                    }
-                } else {
-
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$v}%'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$v}%'");
-                }
-            }
-        }
-
-        if (!empty($wheres))
-            $this->append .= $qry . implode(" AND ", $wheres);
-        return $this;
-    }
-
-    private function orLike($orlike)
-    {
-
-        $this->connection();
-        if (count($this->where) == 0)
-            $qry = " WHERE ";
-        else
-            $qry = " OR ";
-
-        $wheres = array();
-
-        if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
-            foreach ($orlike as $k => $v) {
-                if (is_array($v)) {
-                    $arrVal = [];
-                    foreach ($v as $newV) {
-                        $arrVal[] = escapeString($newV);
-                    }
-                    $regVal = implode("|", $arrVal);
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                } else {
-
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                }
-            }
-        } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
-            foreach ($orlike as $k => $v) {
-                if (is_array($v)) {
-                    $arrVal = [];
-                    foreach ($v as $newV) {
-
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                    }
-                } else {
-
-                    array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . " LIKE '%{$v}%'");
-                    array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . " LIKE '%{$v}%'");
-                }
-            }
-        }
-
-        $this->append .= $qry . implode(" OR ", $wheres);
-        return $this;
-    }
-
-    private function group($group)
-    {
-
-        $this->connection();
-
-        $qry = "";
-        if (isset($group['where']) && !empty($group['where'])) {
-            $where = $group['where'];
-
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " AND ";
-
-            $wheres = array();
-
-            foreach ($where as $k => $v) {
-                if (!empty($v)) {
-                    if($v == 'null'){
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                    } else if ($v == 'not null'){
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                    } else {
-                        $newVal = escapeString($v);
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    }
-                }
-            }
-            
-            if (!empty($wheres))
-                $this->append .= $qry . implode(" AND ", $wheres);
-            // echo $this->append;
-
-        }
-
-        if (isset($group['orwhere']) && !empty($group['orwhere'])) {
-            $orwhere = $group['orwhere'];
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " OR ";
-
-            $wheres = array();
-
-            foreach ($orwhere as $k => $v) {
-                if (!empty($v)) {
-                    if($v == 'null'){
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NULL");
-                    } else if ($v == 'not null'){
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " IS NOT NULL");
-                    } else {
-                        $newVal = escapeString($v);
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark) . "'{$newVal}'");
-                    }
-                }
-            }
-
-            if (!empty($wheres))
-                $this->append .= $qry . " ( " . implode(" OR ", $wheres) . " ) ";
-        }
-
-        if (isset($group['orlike']) && !empty($group['orlike'])) {
-            $orlike = $group['orlike'];
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " AND ";
-
-            $wheres = array();
-
-            if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
-                foreach ($orlike as $k => $v) {
-                    if (is_array($v)) {
-                        $arrVal = [];
-                        foreach ($v as $newV) {
-                            $arrVal[] = escapeString($newV);
-                        }
-                        $regVal = implode("|", $arrVal);
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                    } else {
-
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                    }
-                }
-            } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
-                foreach ($orlike as $k => $v) {
-                    if (is_array($v)) {
-                        $arrVal = [];
-                        foreach ($v as $newV) {
-
-                            array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                            array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                        }
-                    } else {
-
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$v}%'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$v}%'");
-                    }
-                }
-            }
-
-            $this->append .= $qry . " ( " . implode(" OR ", $wheres) . " ) ";
-        }
-
-        if (isset($group['like']) && !empty($group['like'])) {
-            $like = $group['like'];
-            if (count($this->where) == 0)
-                $qry = " WHERE ";
-            else
-                $qry = " AND ";
-
-            $wheres = array();
-
-            if ($this->driverclass == 'mysqli' || $this->driverclass == 'mysql') {
-                foreach ($like as $k => $v) {
-                    if (is_array($v)) {
-                        $arrVal = [];
-                        foreach ($v as $newV) {
-                            $arrVal[] = escapeString($newV);
-                        }
-                        $regVal = implode("|", $arrVal);
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$regVal}'");
-                    } else {
-
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " REGEXP '{$v}'");
-                    }
-                }
-            } else if ($this->driverclass == 'sqlsrv' || $this->driverclass == 'mssql') {
-                foreach ($orlike as $k => $v) {
-                    if (is_array($v)) {
-                        $arrVal = [];
-                        foreach ($v as $newV) {
-
-                            array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                            array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$regVal}%'");
-                        }
-                    } else {
-
-                        array_push($this->where, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$v}%'");
-                        array_push($wheres, $this->columnOpenMark . columnValidate($k, $this->columnOpenMark, $this->columnCloseMark, false) . " LIKE '%{$v}%'");
-                    }
-                }
-            }
-
-            $this->append .= $qry . " ( " . implode(" AND ", $wheres) . " ) ";
-        }
-
-        return $this;
-    }
+    
 
     public function __call($name, $argument)
     {
-        // echo $name;
-
         if (substr($name, 0, 4) == 'get_' && substr($name, 4, 5) != 'list_' && substr($name, 4, 6) != 'first_') {
             $sufixColumn = isset($argument[0]) ? "_{$argument[0]}" : null;
-            $entity = 'App\\Models\\' . table(substr($name, 4));
+            $entity = 'App\\Models\\' . table_entity(substr($name, 4));
             $field = substr($name, 4) . '_Id'. $sufixColumn;
             $entityobject = $entity;
             if (!empty($this->$field)) {
-                $result = $entityobject::get($this->$field);
+                $result = $entityobject::getOrNew($this->$field);
                 return $result;
             } else {
                 return new $entityobject;
@@ -685,8 +266,8 @@ class Nayo_Model
 
             $params = isset($argument[0]) ? $argument[0] : null;
 
-            $entity = 'App\\Models\\' . table(substr($name, 9));
-            $field = entity($this->table) . '_Id';
+            $entity = 'App\\Models\\' . table_entity(substr($name, 9));
+            $field = entity_entity($this->table) . '_Id';
             if (!empty($this->Id)) {
                 $entityobject = $entity;
 
@@ -705,8 +286,8 @@ class Nayo_Model
         } else if (substr($name, 0, 4) == 'get_' && substr($name, 4, 6) == 'first_') {
 
             $params = isset($argument[0]) ? $argument[0] : null;
-            $entity = 'App\\Models\\' . table(substr($name, 10));
-            $field = entity($this->table) . '_Id';
+            $entity = 'App\\Models\\' . table_entity(substr($name, 10));
+            $field = entity_entity($this->table) . '_Id';
 
             $entityobject = $entity;
             if (!empty($this->Id)) {
@@ -718,11 +299,8 @@ class Nayo_Model
                         $field => $this->Id
                     ];
                 }
-                $result = $entityobject::getOne($params, true);
-                if($result)
-                    return $result;
-                else 
-                    return new $entityobject;
+                $result = $entityobject::getOneOrNew($params);
+                return $result;
             }
 
             return new $entityobject;
@@ -733,26 +311,3 @@ class Nayo_Model
 }
 
 
-if (!defined('MYSQL_EMPTYDATE')) define('MYSQL_EMPTYDATE', '0000-00-00');
-if (!defined('MYSQL_EMPTYDATETIME')) define('MYSQL_EMPTYDATETIME', '0000-00-00 00:00:00');
-
-if (!function_exists('table')) {
-    function table($entity)
-    {
-        $tab = pluralize($entity);
-        
-        $split = explode("_", $tab);
-        return $split[0]."_".lcfirst($split[1]);
-        // return $tab;
-        
-    }
-}
-
-if (!function_exists('table')) {
-    function entity($table)
-    {
-        $word = titleize(singularize($table));
-        $split = explode(" ", $word);
-        return implode("_", $split);
-    }
-}
